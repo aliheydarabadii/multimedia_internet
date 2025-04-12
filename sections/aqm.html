@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Queue Management (AQM) - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script
+            id="MathJax-script"
+            async
+            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+        >
+    </script>
+   <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        h3 { margin-top: 2rem; margin-bottom: 1rem; color: #34495e; }
+        h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; color: #555; }
+        p { margin-bottom: 1rem; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .warning-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .warning-box i { color: #ffc107; margin-top: 0.2rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li class="active"><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <!-- Add future links here -->
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-tasks"></i> Active Queue Management (AQM)</h2>
+
+            <section>
+                <h3>🧠 Active Queue Management (AQM): Smarter Handling of Congestion</h3>
+                <p>Modern networks face constant challenges when queues fill up faster than they can be served. This is where AQM (Active Queue Management) steps in.</p>
+            </section>
+
+            <section>
+                <h3>🎯 The Problem: Tail Dropping</h3>
+                <p>When queues reach their maximum capacity, routers often apply <strong>tail dropping</strong> — this means dropping incoming packets at the end (tail) of the queue when it's already full.</p>
+                <p>This method is simple, but it comes with serious drawbacks:</p>
+                
+                <h4>❌ Negative Effects of Tail Dropping</h4>
+                <ul>
+                    <li><strong>Buffer Lock-Out:</strong> One flow monopolizes the queue, preventing others from getting in — hurting fairness.</li>
+                    <li><strong>Full Queues:</strong> Packets are constantly dropped at the tail, even when smarter dropping could improve performance.</li>
+                    <li><strong>TCP Reaction:</strong> TCP interprets dropped packets as a sign of congestion and reduces its sending rate, slowing down transmission unnecessarily.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>✅ Why AQM Is Needed</h3>
+                <p>AQM algorithms actively monitor the queue and drop packets early and intelligently — <strong>before</strong> the queue is completely full. This proactive approach leads to:</p>
+                <ul>
+                    <li>Fairer bandwidth distribution</li>
+                    <li>Reduced latency</li>
+                    <li>Better TCP performance</li>
+                    <li>More stable queues</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🛰️ How TCP Reacts to Packet Loss: The Built-In Congestion Control</h3>
+                <p>TCP (Transmission Control Protocol) has a built-in mechanism to detect and react to packet loss, which is often a sign of network congestion.</p>
+                
+                <h4>📦 The Flow: What Happens When a Packet Is Lost?</h4>
+                <ol>
+                    <li>Sender (TCP Client) transmits packet P.</li>
+                    <li>It starts a timer — waiting for an ACK (Acknowledgment) from the receiver.</li>
+                    <li>If the ACK doesn't arrive before the timeout (EoT - End of Timer), TCP assumes packet loss.</li>
+                    <li>TCP retransmits the missing packet.</li>
+                </ol>
+
+                <h4>🧠 How TCP Reacts</h4>
+                <p>Once a packet is considered lost, TCP performs two key actions:</p>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Retransmits the Lost Packet:</strong> It resends the same data to ensure reliable delivery.</li>
+                    <li><strong>Slows Down Transmission:</strong> TCP interprets loss as a sign of congestion. It reduces the sending rate (transmission window shrinks) to prevent further overload.</li>
+                </ul>
+
+                <h4>🧨 Why This Matters</h4>
+                <p>While this behavior ensures reliability, it can drastically reduce performance in congested networks or those with tail dropping, where packets are dropped without early warnings.</p>
+                
+                <div class="key-point" style="background: #e6f7ff; border-left: 4px solid #17a2b8;">
+                    <i class="fas fa-lightbulb" style="color: #17a2b8;"></i>
+                    <div>
+                        <strong>✅ Solution: Smarter Queue Management</strong>
+                        <p style="margin-bottom: 0;">Using Active Queue Management (AQM), routers can signal congestion <em>before</em> queues are full, allowing TCP to react before packets are lost — leading to better throughput, lower delay, and more stable connections.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>📉 TCP Congestion Control and the Risk of Starvation</h3>
+                <p>TCP dynamically adjusts its transmission rate based on network conditions. While this helps manage congestion, it also introduces a critical vulnerability: packet loss can drastically reduce performance.</p>
+
+                <h4>🚨 What Happens During a Burst of Packet Loss?</h4>
+                <p>When TCP detects a packet loss:</p>
+                <ul>
+                    <li>The transmission rate drops sharply.</li>
+                    <li>After the drop, TCP slowly increases the rate again — typically in a linear (LIN) fashion rather than exponential.</li>
+                    <li>This recovery process can take a long time if losses are frequent.</li>
+                </ul>
+
+                <h4>📊 Graph Summary</h4>
+                <ul>
+                    <li><strong>📈 EXP phase:</strong> Initially, TCP ramps up the transmission rate exponentially.</li>
+                    <li><strong>❌ Packet loss:</strong> A sudden drop occurs when congestion is detected.</li>
+                    <li><strong>📉 LIN phase:</strong> The recovery is slow and steady.</li>
+                    <li><strong>⏳ Result:</strong> If packet loss happens repeatedly, TCP may never fully recover — leading to transmission starvation.</li>
+                </ul>
+
+                <h4>⚠️ Why This Matters</h4>
+                <p>In real-time or bandwidth-sensitive applications (like video calls or cloud gaming), starvation can:</p>
+                <ul>
+                    <li>Introduce unacceptable delays</li>
+                    <li>Cause buffer underruns (leading to stuttering)</li>
+                    <li>Reduce overall throughput dramatically</li>
+                </ul>
+
+                <div class="key-point" style="background: #d1ecf1; border-left: 4px solid #0c5460;">
+                    <i class="fas fa-check-circle" style="color: #0c5460;"></i>
+                    <div>
+                        <strong>✅ Best Practice</strong>
+                        <p style="margin-bottom: 0;">Use Active Queue Management (AQM) or Explicit Congestion Notification (ECN) mechanisms in your network to prevent starvation and provide smoother congestion signals to TCP.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>🚧 Buffer Lock-Out & TCP Starvation: Why Active Queue Management Matters</h3>
+                <p>In networking, fairness is critical when multiple TCP connections compete for bandwidth. Unfortunately, default behavior in routers (like Tail Drop) can lead to something called:</p>
+                <h4>❌ Buffer Lock-Out Phenomenon</h4>
+                <p>This occurs when a few aggressive TCP flows dominate the buffer space, forcing other connections into starvation — they get repeatedly dropped and never recover.</p>
+
+                <h4>🔁 What Happens?</h4>
+                <ol>
+                    <li>🌐 TCP connections fill the buffer.</li>
+                    <li>❗ Packet losses happen (due to tail dropping).</li>
+                    <li>⚠️ Only the weaker flows (already sending less data) get punished disproportionately.</li>
+                    <li>🔒 Stronger flows continue transmitting — this leads to unfairness and starvation of other users.</li>
+                </ol>
+
+                <h4>💡 The Solution: Active Queue Management (AQM)</h4>
+                <p>AQM is a smart alternative to Tail Drop. Instead of waiting for the buffer to be full, AQM algorithms:</p>
+                <ul>
+                    <li>Proactively drop packets before the buffer is full</li>
+                    <li>Signal congestion early</li>
+                    <li>Distribute losses more fairly across connections</li>
+                </ul>
+
+                <h4>📘 Examples of AQM techniques:</h4>
+                <ul>
+                    <li>RED (Random Early Detection)</li>
+                    <li>CoDel (Controlled Delay)</li>
+                    <li>PIE (Proportional Integral controller Enhanced)</li>
+                </ul>
+
+                <h4>🔍 TL;DR</h4>
+                <ul>
+                    <li>Without AQM, buffer space gets locked by a few TCP flows.</li>
+                    <li>With AQM, all flows get a fair shot — even under congestion.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🧪 Tail Drop vs. AQM (Comparison Table)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Tail Dropping</th>
+                            <th>Active Queue Management</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>When packets are dropped</td>
+                            <td>Only when full</td>
+                            <td>Before full, proactively</td>
+                        </tr>
+                        <tr>
+                            <td>TCP performance impact</td>
+                            <td>High (slowdown)</td>
+                            <td>Lower</td>
+                        </tr>
+                        <tr>
+                            <td>Fairness across flows</td>
+                            <td>Poor</td>
+                            <td>Better</td>
+                        </tr>
+                        <tr>
+                            <td>Risk of lock-out</td>
+                            <td>High</td>
+                            <td>Reduced</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h3>🌐 Active Queue Management (AQM): Preventing Buffer Lock-Outs</h3>
+                <h4>🚦 Why Do We Need AQM?</h4>
+                <p>In traditional network queues, packets are dropped only when the buffer is full (<strong>Tail Drop</strong>). This approach leads to:</p>
+                <ul>
+                    <li>❌ <strong>Buffer Lock-Out</strong> – dominant TCP flows occupy all the buffer space.</li>
+                    <li>⚠️ <strong>Full Queues</strong> – increases latency and causes unfairness.</li>
+                </ul>
+
+                <h4>🧠 AQM to the Rescue</h4>
+                <p>AQM solves this by distributing packet losses randomly and fairly among all connections, helping to:</p>
+                <ul>
+                    <li>Maintain low latency</li>
+                    <li>Avoid starvation of low-volume flows</li>
+                    <li>Prevent the queue from overflowing</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🔍 RED: Random Early Detection</h3>
+                <p>One of the most well-known AQM strategies is RED. Instead of waiting for the buffer to fill up, RED:</p>
+                <ul>
+                    <li>Monitors buffer occupancy</li>
+                    <li>📈 As occupancy increases, it <strong>probabilistically</strong> drops incoming packets</li>
+                    <li>The dropping chance is a function of queue fullness</li>
+                </ul>
+                <p>This technique signals congestion early and helps TCP connections back off before it's too late.</p>
+
+                <h4>📊 Tail Drop vs. RED</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Tail Drop</th>
+                            <th>RED</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Drop Trigger</td>
+                            <td>Full buffer</td>
+                            <td>Based on probability (queue fullness)</td>
+                        </tr>
+                        <tr>
+                            <td>Congestion Signal</td>
+                            <td>Late</td>
+                            <td>Early</td>
+                        </tr>
+                        <tr>
+                            <td>Fairness</td>
+                            <td>Low (unfair)</td>
+                            <td>High (even distribution)</td>
+                        </tr>
+                        <tr>
+                            <td>Latency</td>
+                            <td>High (queues full)</td>
+                            <td>Lower</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h3>📉 RED Logic: How It Decides to Drop Packets</h3>
+                <h4>📊 RED Uses Average Queue Occupancy</h4>
+                <p>Instead of relying on instantaneous buffer occupancy, RED tracks the <strong>average fill level</strong> of the buffer over time (using a time window). This smooths out temporary bursts and provides a more stable measure of congestion.</p>
+
+                <h4>🧮 How Packet Drop Decisions Are Made</h4>
+                <p>The drop probability for an incoming packet depends on this <em>average</em> buffer occupancy:</p>
+                <ul>
+                    <li>🟢 <strong>Low average occupancy:</strong> Very low probability of dropping a packet. The queue is likely not congested.</li>
+                    <li>🟠 <strong>Medium average occupancy:</strong> Drop probability increases gradually (often linearly) as the average occupancy rises. This signals mild congestion.</li>
+                    <li>🔴 <strong>High average occupancy:</strong> High probability of dropping a packet (or even 100% drop rate past a certain threshold). This signals severe congestion.</li>
+                </ul>
+                <p>This early detection method avoids sudden full-buffer events and helps prevent:</p>
+                <ul>
+                    <li>Queue overflow</li>
+                    <li>Latency spikes</li>
+                    <li>Starvation of new connections</li>
+                </ul>
+
+                <h4>📌 What's the Taildrop Threshold?</h4>
+                <p>The Taildrop threshold is the absolute maximum capacity of the buffer. When RED is <strong>not</strong> used, all decisions are made based on whether this threshold is exceeded.</p>
+                <p>With RED, we proactively manage congestion using probabilistic drops based on the <em>average</em> occupancy, aiming to keep the queue level well below the hard taildrop limit.</p>
+            </section>
+
+            <section>
+                <h3>🧠 RED Decision Logic: How It Works</h3>
+                <p>RED (Random Early Detection) uses <strong>buffer thresholds</strong> to determine whether to drop a packet — but it <strong>doesn't just look at the buffer in the moment</strong>.</p>
+
+                <h4>🎯 Decision Based on Three Key Parameters</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Parameter</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Meaning</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>MinTh</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Minimum threshold</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">If the average buffer occupancy is below this, <strong>no packet is dropped</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>MaxTh</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Maximum threshold</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">If the average is above this, <strong>packet is always dropped</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>MaxP</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Max drop probability</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Defines how likely a packet is to be dropped <strong>between</strong> MinTh and MaxTh</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <blockquote>
+                    <p>✅ <strong>Decision depends on average buffer occupancy</strong>, not instantaneous spikes.</p>
+                </blockquote>
+
+                <hr style="margin: 2rem 0;">
+
+                <h4>📈 Why Use <em>Average</em> Buffer Occupancy?</h4>
+                <p>Using <strong>instantaneous buffer levels</strong> would lead to <strong>highly reactive and erratic behavior</strong>. Instead, RED calculates an <strong>average occupancy</strong> to:</p>
+                <ul>
+                    <li>Smooth out short-term traffic bursts</li>
+                    <li>Make <strong>statistically fair decisions</strong></li>
+                    <li>Prevent overreaction to a few big packets</li>
+                    <li>Avoid full-buffer scenarios like <strong>taildrop</strong></li>
+                </ul>
+                <p>This averaging mechanism makes RED <strong>more stable</strong>, <strong>predictable</strong>, and <strong>efficient</strong> under real-world traffic.</p>
+            </section>
+
+            <section>
+                <h3>🔄 How RED Calculates Average Queue Length</h3>
+                <p>In <strong>Random Early Detection (RED)</strong>, network routers don't react instantly to changes in queue size. Instead, they <strong>smooth out</strong> the short-term bursts using an <strong>exponential weighted moving average (EWMA)</strong>. This helps prevent overreacting to brief traffic spikes.</p>
+
+                <hr style="margin: 2rem 0;">
+
+                <h4>📊 Key Concept: Instantaneous vs. Average Queue Size</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Term</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>Q(t)</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">The <strong>instantaneous</strong> queue size at time \(t\) — very dynamic and spiky</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>Q<sub>ave</sub>(t)</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">The <strong>average</strong> queue size — a smoothed version of \(Q(t)\) that changes more slowly</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <hr style="margin: 2rem 0;">
+
+                <h4>📉 Why Use a Low-Pass Filter?</h4>
+                <p>RED uses the formula:</p>
+                <div>
+                  \[ Q_{ave}(t) = (1 - w) \cdot Q_{ave}(t - 1) + w \cdot Q(t) \]
+                </div>
+                <p>Where:</p>
+                
+                <ul>
+                    <li>\(w\) is the <strong>weighting factor</strong> (between 0 and 1)</li>
+                    <li>A <strong>small \(w\)</strong> makes \(Q_{ave}\) very smooth (slow to react)</li>
+                    <li>A <strong>larger \(w\)</strong> makes \(Q_{ave}\) follow \(Q(t)\) more closely (faster reaction)</li>
+                </ul>
+                <blockquote>
+                    <p>🧠 This is like applying a <strong>low-pass filter</strong> to the queue size — smoothing fast variations and helping make more stable decisions.</p>
+                </blockquote>
+
+                 <hr style="margin: 2rem 0;">
+
+                <h4>⚙️ Practical Impact</h4>
+                <p>By using \(Q_{ave}\), RED:</p>
+                <ul>
+                    <li>Avoids overreacting to short spikes in traffic</li>
+                    <li>Makes <strong>packet-dropping decisions</strong> more stable</li>
+                    <li>Reduces packet loss and latency fluctuations due to bursty traffic</li>
+                </ul>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset();
+        });
+      });
+    </script>
+</body>
+</html> 

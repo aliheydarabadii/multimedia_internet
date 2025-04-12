@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheduler Types - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+      // MathJax Configuration
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        h3 { margin-top: 2rem; margin-bottom: 1rem; color: #34495e; }
+        h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; color: #555; }
+        p { margin-bottom: 1rem; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .warning-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .warning-box i { color: #ffc107; margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li class="active"><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-calendar-alt"></i> Types of Schedulers</h2>
+
+            <section>
+                <h3>1) FIFO (First-In, First-Out)</h3>
+                <p>📦 All packets are handled in arrival order, regardless of type.</p>
+                <h4>🧾 Characteristics:</h4>
+                <ul>
+                    <li>Simple queue (one class of service).</li>
+                    <li>Cannot differentiate among multiple traffic classes.</li>
+                    <li>All packets are treated the same.</li>
+                </ul>
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>⚠️ Limitation:</strong>
+                        <p>Only Best Effort Networks can be built using FIFO. No QoS (Quality of Service) guarantees are possible.</p>
+                    </div>
+                </div>
+                 <p style="margin-top: 1rem;">🖼️ Illustrated with:</p>
+                 <p>Input → [Queue] → Output</p>
+            </section>
+
+            <section>
+                <h3>2) Strict Priority Scheduler</h3>
+                <h4>🤔 Key question:</h4>
+                <p>How does the scheduler decide which class to serve next?</p>
+                <p>📊 Packets are divided into priority classes (e.g., 1, 2, 3).</p>
+                <h4>🛠️ Behavior:</h4>
+                <ul>
+                    <li>Scheduler always serves the highest priority queue that is not empty.</li>
+                    <li>Lower priority queues may starve if higher ones are always full.</li>
+                </ul>
+                 <p style="margin-top: 1rem;">🖼️ Illustrated with:</p>
+                 <p>Input → Class 1 → Class 2 → Class 3 → S → Output Line</p>
+            </section>
+
+            <section>
+                <h3>🔁 Strict Priority Scheduler – Decision Flow</h3>
+                <h4>🧭 Flowchart of Decision Logic</h4>
+                <pre style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 1rem; border-radius: 4px; line-height: 1.5;">
+START
+ ↓
+Class 1 has one or more packets?
+   └─ YES → Select Class 1
+   └─ NO →
+        ↓
+Class 2 has one or more packets?
+   └─ YES → Select Class 2
+   └─ NO →
+        ↓
+Class 3 has one or more packets?
+   └─ YES → Select Class 3
+   └─ NO → (No packets to serve)
+                </pre>
+
+                <div style="margin-top: 1.5rem;">
+                    <h4>📌 Notes on the Right:</h4>
+                    <ul>
+                        <li>✅ Extremely simple policy</li>
+                        <li>⚡ Very fast</li>
+                        <li>📊 Gives a ranking of priorities</li>
+                    </ul>
+
+                    <h4>🔽 Class → Priority of Service</h4>
+                    <ul>
+                        <li>Priority 1 is better than Priority 2</li>
+                        <li>Priority 2 is better than Priority 3</li>
+                        <li>Packets are served strictly in this order.</li>
+                    </ul>
+                </div>
+
+                <div class="key-point" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1.5rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0; color: #856404;">🧠 Implication:</h4>
+                        <p style="margin: 0;">Higher priority queues (like Class 1) may dominate the service and lead to starvation of lower classes if not managed carefully.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3>🔢 Hierarchy of Classes (Priorities)</h3>
+                <h4>🎯 Core Ideas:</h4>
+                <ul>
+                    <li>
+                        <strong>🗂 Strict Priority (SP) Scheduling:</strong>
+                        <ul>
+                            <li>Packets are served starting from priority 1 (highest), going down only when higher ones are empty.</li>
+                            <li>A packet from priority \(m\) is fetched only if all buffers from 1 to \(m-1\) are empty.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>🏗 Diagram (Left Side):</h4>
+                <p>Shows a stack of buffers labeled:</p>
+                <p><code>1 → 2 → ... → i+1 → m</code></p>
+                <ul>
+                    <li>Bottom class \(m\) is labeled <strong>Best Effort</strong></li>
+                    <li>Label: "SP" marks the scheduler</li>
+                </ul>
+
+                <h4>💡 Insights (Right Side):</h4>
+                <ul>
+                    <li>✅ <i>"The simplest of the multi-class schedulers, but quite effective"</i></li>
+                    <li>✅ Suitable for guaranteed SLAs</li>
+                    <li>⏱ Traffic with stringent delay requirements should be in high priorities (1, 2, ...)</li>
+                    <li>🌐 Data traffic (with less strict constraints) can be assigned lower priorities</li>
+                    <li>Example SLA: \( \text{SLA}(d, p) \) with \( p = \infty \) ⇒ best-effort (no delay guarantee)</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>⚙️ General Processor Sharing (GPS) Scheduler</h3>
+                <p>Example with 3 Service Classes</p>
+                <h4>🔢 Weights & Fairness:</h4>
+                <ul>
+                    <li>Each class is assigned a weight \( w_i \in (0,1) \)</li>
+                    <li>Total: \( w_1 + w_2 + w_3 = 1 \)</li>
+                    <li>The \(i\)-th service class must receive at least \( w_i \times C \)
+                        (where C is the total transmission capacity)</li>
+                </ul>
+
+                <h4>💡 What if one class is silent?</h4>
+                <ul>
+                    <li>If a class is temporarily inactive,
+                        GPS redistributes unused capacity to active classes</li>
+                    <li>Redistribution is proportional to the weights</li>
+                </ul>
+
+                <h4>📊 Visual Illustration:</h4>
+                <ul>
+                    <li>Buffers for classes 1, 2, 3 with weights \(w_1\), \(w_2\), \(w_3\)</li>
+                    <li>GPS scheduler labeled in the center</li>
+                    <li>Output line to channel C</li>
+                </ul>
+
+                <h4>✅ Summary:</h4>
+                <p>GPS ensures fair bandwidth sharing, giving minimum guaranteed capacity per weight, and flexibly reallocates spare bandwidth when a class is silent.</p>
+            </section>
+
+            <section>
+                <h3>⚖️ GPS: Redistribution Example</h3>
+                <h4>Given:</h4>
+                <ul>
+                    <li>\( w_1 = 0.3 \), \( w_2 = 0.5 \), \( w_3 = 0.2 \)</li>
+                    <li>Class 3 is silent</li>
+                    <li>So, 20% of total capacity (originally assigned to class 3) is redistributed to classes 1 and 2 proportionally to their weights</li>
+                </ul>
+
+                <h4>📊 Redistribution Calculation:</h4>
+                <p>Let's calculate the new effective bandwidth shares:</p>
+                <p><strong>Class 1:</strong></p>
+                \[ \text{New } w_1 = 0.3 + 0.2 \times \left( \frac{0.3}{0.3 + 0.5} \right) = 0.3 + 0.2 \times 0.375 = 0.3 + 0.075 = 0.375 \]
+                <p><strong>Class 2:</strong></p>
+                \[ \text{New } w_2 = 0.5 + 0.2 \times \left( \frac{0.5}{0.3 + 0.5} \right) = 0.5 + 0.2 \times 0.625 = 0.5 + 0.125 = 0.625 \]
+
+                <p>✅ New allocations sum to 1.0 as expected (\(0.375 + 0.625 = 1.0\)).</p>
+
+                <h4>✳️ Insight:</h4>
+                <ul>
+                    <li>GPS is more complex than SP (Strict Priority) because it dynamically reallocates unused bandwidth, ensuring fairness and efficiency based on class weights.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>⚖️ GPS in Practice: Reality vs Theory</h3>
+                <h4>🚦 Nominal Weights:</h4>
+                <ul>
+                    <li>\( w_1 = 0.3 \)</li>
+                    <li>\( w_2 = 0.5 \)</li>
+                    <li>\( w_3 = 0.2 \)</li>
+                </ul>
+                <p>These are the configured weights for GPS.</p>
+
+                <h4>⏱ Real Scenario (Time Interval: \(t_0 \rightarrow t_1\)):</h4>
+                <ul>
+                    <li>Suppose Class 3 is active during the whole interval.</li>
+                    <li>Then Class 3 takes 100% of the line capacity temporarily:
+                        <ul>
+                            <li>So in that short time:
+                                <ul>
+                                    <li>\( w_3 = 1 \)</li>
+                                    <li>\( w_1 = 0 \), \( w_2 = 0 \)</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+                <p><strong>Because:</strong></p>
+                <ul>
+                    <li>We cannot interrupt the service of a packet. Once Class 3 starts transmitting a packet, it uses the whole link.</li>
+                </ul>
+
+                <h4>🧠 Key Insight:</h4>
+                <p><i>"If traffic were infinitely divisible",</i> we could enforce weights even on very short timescales (like packet-level).</p>
+                <p><strong>But:</strong></p>
+                <ul>
+                    <li>🚫 In real life, traffic is not infinitely divisible — packets cannot be partially transmitted.</li>
+                </ul>
+
+                <h4>🕐 Consequence:</h4>
+                <ul>
+                    <li>These weights (e.g., \(w_1\), \(w_2\), \(w_3\)) only hold over a longer timescale (more than one packet).</li>
+                </ul>
+                <p>So GPS is a theoretical model that assumes infinite divisibility. Practical scheduling (like WFQ) approximates it.</p>
+            </section>
+
+            <section>
+                <h3>⏳ GPS: Time Scale and Responsiveness</h3>
+
+                <h4>🔍 Left Section:</h4>
+                <blockquote>
+                    <p><i>"The length of the time window and the details on how the scheduler decides which class to serve produces a number of 'dialects' of GPS."</i></p>
+                </blockquote>
+                <p>In essence, different implementations of GPS exist, depending on:</p>
+                <ul>
+                    <li>How often decisions are made.</li>
+                    <li>How the scheduler evaluates fairness.</li>
+                </ul>
+
+                <h4>🔁 Real vs Nominal Weights:</h4>
+                <p>A timeline with colored blocks (likely packets from different classes) shows that:</p>
+                <ul>
+                    <li>Over a longer time window (e.g., \(t_0 \rightarrow t_1\)), real weights can approximate nominal weights (\(w_1, w_2, w_3\)).</li>
+                    <li>This longer observation period smooths out short-term fluctuations.</li>
+                    <li><i>"Weights (real) can approximate well the nominal weights."</i></li>
+                </ul>
+
+                <h4>🧠 Key Insight:</h4>
+                <ul>
+                    <li>GPS works on a time scale longer than the packet time scale.</li>
+                    <li>It must analyze a window where multiple packets have been transmitted to understand and enforce fair weight-based sharing.</li>
+                </ul>
+
+                <h4>❗Conclusion:</h4>
+                <blockquote>
+                    <p><i>"This means that GPS reacts slower than SP (Strict Priority)." </i></p>
+                </blockquote>
+                <ul>
+                    <li>Strict Priority reacts immediately based on class priority.</li>
+                    <li>GPS needs to observe and accumulate behavior to ensure fairness.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>📚 GPS: A Class of Schedulers</h3>
+                <p>✅ GPS is a conceptual model, but in practice, we need real implementations.</p>
+                <blockquote>
+                    <p><i>"GPS; it is a class of schedulers"</i></p>
+                </blockquote>
+
+                <h4>🛠 Real Implementations of GPS:</h4>
+                <p>The slide lists practical algorithms based on GPS principles:</p>
+                <ul>
+                    <li>WFQ (Weighted Fair Queuing)</li>
+                    <li>WFQ2</li>
+                    <li>WFQ2+</li>
+                    <li>(etc.)</li>
+                </ul>
+                <p>All these are labeled as:
+                    <i>"All based on the GPS principle"</i></p>
+                <p>They try to approximate GPS behavior under real-world constraints (e.g., discrete packets, not infinitely divisible traffic).</p>
+
+                <h4>📏 Key Technical Point:</h4>
+                <blockquote>
+                    <p><i>"GPS is based on transmission rate"</i></p>
+                </blockquote>
+                <p>This means:</p>
+                <ul>
+                    <li>Each class gets bandwidth proportional to its weight.</li>
+                    <li>It's not about number of packets or strict priority, but about fair share of bandwidth.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>⏰ 4) Earliest Deadline First (EDF)</h3>
+                <h4>✅ What it is:</h4>
+                <p>EDF assigns a "service deadline" to each packet (or class of packets), based on how quickly it needs to be served.</p>
+
+                <h4>🔁 How it works:</h4>
+                <blockquote>
+                    <p><i>"The EDF scheduler selects the packet with the smallest residual time."</i></p>
+                </blockquote>
+                <p>This means:</p>
+                <ul>
+                    <li>The packet that is closest to its deadline will be chosen first for transmission.</li>
+                </ul>
+
+                <h4>📌 Residual Time Calculation:</h4>
+                <p>When a packet enters:</p>
+                <ul>
+                    <li>It is timestamped with its arrival time \(t_k\).</li>
+                    <li>It is also given a deadline: \(t_k + d_k\) (where \(d_k\) is the delay threshold for the class).</li>
+                    <li>At time \(t\), the residual time is:</li>
+                </ul>
+                \[ \text{Residual Time} = t_k + d_k - t \]
+                <ul>
+                    <li>This measures how much time is left before the packet's deadline expires.</li>
+                </ul>
+
+                <h4>📉 Scheduler Decision:</h4>
+                <ul>
+                    <li>At any moment, the scheduler compares all residual times.</li>
+                    <li>It picks the packet with the lowest residual time (i.e., most urgent).</li>
+                </ul>
+
+                <h4>🧠 Key Insight:</h4>
+                <ul>
+                    <li>EDF dynamically adapts to deadlines, making it useful for delay-sensitive applications.</li>
+                    <li>Unlike GPS (which works with weights), EDF uses timing urgency.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>🗂 Overview of Schedulers</h2>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">#</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Scheduler</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Type</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Characteristic</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">1️⃣</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">FIFO (First-In, First-Out)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Single-class</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Best-effort service only. No differentiation.</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">2️⃣</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">SP (Strict Priority)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Multi-class</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Priority-based (class 1 > class 2, etc.)</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">3️⃣</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">GPS (Generalized Processor Sharing)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Multi-class</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Based on rate weights (e.g., bandwidth share)</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">4️⃣</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">EDF (Earliest Deadline First)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Multi-class</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Delay-based (residual time to deadline)</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="warning-box">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <h4>⚠️ Key Caveat about EDF:</h4>
+                        <p><i>"The service deadline of EDF is NOT the SLA delay \((d, p)\)!"</i></p>
+                        <ul>
+                            <li>In theory, you might think EDF uses the same delay from the SLA (e.g., 50ms delay requirement).</li>
+                            <li>But in practice, EDF uses a different internal delay value, usually shorter.</li>
+                            <li>For example:
+                                <ul>
+                                    <li>SLA: \((d=50\text{ms}, p=1 \times 10^{-3})\)</li>
+                                    <li>EDF: might assign \(d_i = 10\text{ms}\) internally.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                        <p><strong>This means:</strong></p>
+                        <ul>
+                            <li>There's only an indirect relation between SLA and the EDF's service deadline.</li>
+                            <li>As a result, EDF may not guarantee SLA, making it not a good choice for strict SLA enforcement.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="key-point" style="margin-top: 2rem;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <h4>📌 General Observation:</h4>
+                        <p><i>"These schedulers do not take into account the full parameters of SLA or TCA."</i></p>
+                        <p>They use simple rules based on:</p>
+                        <ul>
+                            <li>Arrival order (FIFO),</li>
+                            <li>Class priority (SP),</li>
+                            <li>Rate weights (GPS),</li>
+                            <li>Deadlines (EDF),</li>
+                        </ul>
+                        <p>But not the combination of SLA delay and packet loss constraints.</p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset(); 
+        });
+      });
+    </script>
+</body>
+</html> 

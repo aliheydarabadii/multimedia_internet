@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Network Protocol Architecture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .diagram {
+            border: 2px solid #333;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 1000px;
+        }
+        h1 {
+            color: #333;
+        }
+        .plane {
+            margin-bottom: 20px;
+        }
+        .arrow {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="diagram">
+        <h1>Network Protocol Architecture</h1>
+        <div class="plane">
+            <h2>User Plane</h2>
+            <ul>
+                <li>APP</li>
+                <li>IP</li>
+                <li>PHY</li>
+            </ul>
+        </div>
+        <div class="plane">
+            <h2>Control Plane</h2>
+            <ul>
+                <li>Signal Path (Signaling)</li>
+            </ul>
+        </div>
+        <div class="plane">
+            <h2>Management Plane</h2>
+            <ul>
+                <li>Management Operations</li>
+            </ul>
+        </div>
+        <div class="arrow">Signaling Path between User Plane and Control Plane</div>
+        <div class="arrow">Management Plane interaction with User Plane and Control Plane</div>
+    </div>
+    <div class="diagram" id="ip-best-effort">
+        <h3>IP Best-Effort Service – Guarantees with TCP vs UDP</h3>
+        
+        <p>IP networks operate on a best-effort basis, meaning they don't provide guarantees for:</p>
+        <ul>
+            <li>Delivery time</li>
+            <li>Packet delivery</li>
+            <li>Packet order</li>
+        </ul>
+
+        <div class="table-container">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>TCP</th>
+                        <th>UDP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>On Packet Sequence</td>
+                        <td class="success">Guarantees order</td>
+                        <td class="error">No guarantee</td>
+                    </tr>
+                    <tr>
+                        <td>On Packet Delivery</td>
+                        <td class="success">Guarantees delivery</td>
+                        <td class="error">No guarantee</td>
+                    </tr>
+                    <tr>
+                        <td>On Delay</td>
+                        <td class="error">No guarantee</td>
+                        <td class="error">No guarantee</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="comparison">
+            <div class="protocol">
+                <h4>TCP Characteristics</h4>
+                <ul>
+                    <li>Connection-oriented protocol</li>
+                    <li>Reliable data delivery</li>
+                    <li>Flow control and congestion control</li>
+                    <li>Sequenced data transmission</li>
+                    <li>Error checking and recovery</li>
+                </ul>
+            </div>
+            <div class="protocol">
+                <h4>UDP Characteristics</h4>
+                <ul>
+                    <li>Connectionless protocol</li>
+                    <li>Fast data transmission</li>
+                    <li>No flow control</li>
+                    <li>No guaranteed delivery</li>
+                    <li>Ideal for real-time applications</li>
+                </ul>
+            </div>
+        </div>
+
+        <blockquote>
+            <p>Both TCP and UDP rely on IP's best-effort service, but they handle the lack of guarantees differently based on their application requirements.</p>
+        </blockquote>
+    </div>
+   
+</body>
+</html> 

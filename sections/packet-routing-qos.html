@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Routing & QoS - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+      // MathJax Configuration
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .conclusion-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: #fff9db; border-radius: 8px; border-left: 4px solid #f1c40f; }
+        .conclusion-box i { color: #f1c40f; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li class="active"><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-satellite-dish"></i> Packet Routing & QoS (Quality of Service)</h2>
+            
+            <h3><i class="fas fa-sync-alt"></i> Traffic Conditioner → Routers</h3>
+            <p>Packets from a user are first sent to a Traffic Conditioner, which classifies and marks them with QoS attributes.</p>
+            
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-question-circle"></i> Key Question:</h3>
+            <p>How does the router know what is the correct treatment for a given packet?</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-comment-dots"></i> QoS = SLA (Service Level Agreement)</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>QoS-SLA are guaranteed by routers</li>
+                <li>Routers must know the quality requirement of each packet</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-box-open"></i> Packet Requirements:</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>Packets must carry the SLA info with them</li>
+            </ul>
+            <p>This allows routers to:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>Understand what treatment each packet requires</li>
+                <li>Enforce delay guarantees (e.g. minimal delay for high-priority traffic)</li>
+            </ul>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 1.5rem;">
+                 <i class="fas fa-brain" style="color: #6f42c1;"></i>
+                 <p><strong>Insight:</strong> <i>"Must guarantee delay… but what is the delay that the router must guarantee?"</i><br/>
+                    This varies per SLA, and each router in the network must respect that for end-to-end performance.
+                 </p>
+            </div>
+
+            <section>
+                <h2>📦 Who Writes SLA Info into Packets?</h2>
+                <p><strong>❌ Should the user write the SLA requirement into packets?</strong></p>
+                <p style="font-weight: bold; color: red; font-size: 1.2em;">NO!!!</p>
+
+                <p><strong>🧠 Key Concept:</strong></p>
+                <p>The <strong>Traffic Conditioner</strong> is responsible for labeling packets with their SLA information.</p>
+
+                <p><strong>🛠️ What the Traffic Conditioner does:</strong></p>
+                <ul>
+                    <li>Takes the raw packet from the user</li>
+                    <li>Adds:
+                        <ul>
+                            <li>SLA indication (e.g., priority level)</li>
+                            <li>Color marking (e.g., green/yellow/red for conformance)</li>
+                        </ul>
+                    </li>
+                    <li>This information is written inside the packet</li>
+                </ul>
+
+                <p><strong>📤 Final Output:</strong></p>
+                <p>Packets leave the traffic conditioner with embedded SLA and QoS classification to guide routers during network traversal.</p>
+            </section>
+
+            <section>
+                <h2>🧾 Where Do We Write SLA Info in Packets?</h2>
+                <p><strong>✅ In the Packet Header</strong></p>
+                <p>Packets carry SLA indication (and optionally color marking) inserted by the Traffic Conditioner (TC) into the packet's header.</p>
+
+                <h3>📦 DSCP Field (Differentiated Services Code Point)</h3>
+                <ul>
+                    <li>Located in the IP header</li>
+                    <li>6 bits used to encode:
+                        <ul>
+                            <li>SLA level</li>
+                            <li>Packet color (optional)</li>
+                        </ul>
+                    </li>
+                    <li>1 bit for Explicit Congestion Notification (ECN)</li>
+                </ul>
+
+                <h3>🛠️ Background:</h3>
+                <ul>
+                    <li>The DSCP field replaced the old TOS (Type of Service) field from earlier IP versions.</li>
+                    <li><strong>Why?</strong>
+                        <ul>
+                            <li>The TOS field was not very useful, leading to the adoption of DSCP for better QoS control.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>🧠 Summary:</h3>
+                <ul>
+                    <li>Traffic Conditioner inserts SLA data</li>
+                    <li>DSCP field carries this info in the IP header</li>
+                    <li>Enables routers to classify, prioritize, and treat packets based on SLA</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📌 TOS Field: Type of Service</h2>
+                <p>The TOS (Type of Service) field was used in earlier IP versions to influence how routers treat packets. It contains:</p>
+
+                <h3>🧩 Bit Breakdown:</h3>
+                <ul>
+                    <li><strong>PPP</strong> — Priority bits</li>
+                    <li><strong>T</strong> — Throughput (High Throughput)</li>
+                    <li><strong>D</strong> — Delay (Low Delay)</li>
+                    <li><strong>R</strong> — Reliability (High Reliability)</li>
+                    <li><strong>XX</strong> — Reserved / Kind of treatment bits</li>
+                </ul>
+
+                <h3>🧠 Interpretations:</h3>
+                <ul>
+                    <li>Used to suggest packet treatment based on service quality:
+                        <ul>
+                            <li>High throughput</li>
+                            <li>Low delay</li>
+                            <li>High reliability</li>
+                        </ul>
+                    </li>
+                    <li>⚠️ But it's not clear how routers should implement these behaviors.</li>
+                </ul>
+
+                <h3>⚙️ Scheduling & Prioritization:</h3>
+                <ul>
+                    <li>The field supports strict priority, which is fine for certain traffic types.</li>
+                    <li>However, more flexible or modern scheduling algorithms might be preferred.</li>
+                </ul>
+
+                <h3>⚠️ Key Concern:</h3>
+                <ul>
+                    <li>Although 6 bits are available to define packet treatment,</li>
+                    <li>Their vague definition leads to overcomplicated implementations or too many unnecessary options.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>🧩 DSCP Field (Differentiated Services Code Point)</h2>
+
+                <h3>📘 Bit Structure:</h3>
+                <pre><code>BBBBBBXX</code></pre>
+                <ul>
+                    <li><strong>BBBBBB:</strong> 6 bits used to define SLA (Service Level Agreement) and Color (packet treatment).</li>
+                    <li><strong>XX:</strong> 2 reserved bits</li>
+                </ul>
+
+                <h3>🧮 6 Bits = 2⁶ = 64 combinations</h3>
+                <p>These can be used for encoding:</p>
+                <ul>
+                    <li>SLA levels</li>
+                    <li>Traffic color (Green, Yellow, Red)</li>
+                </ul>
+
+                <h3>⚙️ Provider Semantics:</h3>
+                <p><i>"It is up to the provider to assign a meaning (semantics) to the 6 bits."</i></p>
+                <p>That means the provider interprets what each bit combination represents in terms of traffic treatment policies.</p>
+
+                <h3>🧭 Traffic Conditioner (TC):</h3>
+                <p>When a packet enters the network, the Traffic Conditioner (TC) performs:</p>
+                <ul>
+                    <li>SLA identification</li>
+                    <li>Color assignment (using markers)</li>
+                </ul>
+                <p>→ ✅ This is the task of the <strong>Classifier</strong></p>
+            </section>
+
+            <section>
+                <h2>🚦 Traffic Conditioner</h2>
+                <p>A Traffic Conditioner includes two main components:</p>
+
+                <h3>🔹 Classifier</h3>
+                <ul>
+                    <li><strong>Input:</strong> Packet</li>
+                    <li><strong>Function:</strong> Decides the SLA</li>
+                    <li><strong>Criteria:</strong>
+                        <ul>
+                            <li>Who is the client?</li>
+                            <li>What is the application?</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>🔹 Marker</h3>
+                <ul>
+                    <li><strong>Function:</strong> Applies SLA marking (e.g., DSCP) to the packet.</li>
+                </ul>
+
+                <p>📃 Decision is based on the contract between:</p>
+                <p>Customer ↔ Provider</p>
+
+                <h3>🔀 SLA Assignment per Application</h3>
+                <p>Each kind of application may be mapped to a different SLA:</p>
+                <ul>
+                    <li>📞 Telephone → SLA1</li>
+                    <li>💾 Data → SLA2</li>
+                    <li>🎥 Video Streaming → SLA3</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📝 SLA Contracts and Time Scales</h2>
+
+                <h3>1. Long-Term Time Scale</h3>
+                <p>Customer and provider must stipulate a contract:</p>
+                <ul>
+                    <li>Specifies the SLA and TCA</li>
+                    <li>Applied to the customer's applications and possibly internal users</li>
+                    <li>⏱️ <strong>Time Scale:</strong> Long-term (measured in months)</li>
+                </ul>
+
+                <h3>2. Connection Time Scale</h3>
+                <p>Occurs when a new connection is offered by the user</p>
+                <ul>
+                    <li>🌐 <code>conn. request</code> (connection request)</li>
+                </ul>
+                <p>🎯 <strong>Two Key Steps:</strong></p>
+                <ul>
+                    <li>Admission Control</li>
+                    <li>Resource Allocation</li>
+                </ul>
+                <p>➡️ Based on these, decide to:</p>
+                <ul>
+                    <li>✅ Accept Connection</li>
+                    <li>❌ Reject Connection</li>
+                </ul>
+                <p>If accepted:</p>
+                <ul>
+                    <li>🛠 Assign to the new connection the resources needed to guarantee the SLA</li>
+                </ul>
+                 <p>⏱️ <strong>Time Scale:</strong> Per-connection level (shorter than long-term contracts)</p>
+            </section>
+
+            <section>
+                <h3>3. 🕒 Real-Time Management of Traffic in the Network</h3>
+                <p>✅ Done by: <strong>Routers</strong></p>
+                <p>Routers implement the SLA (Service Level Agreement).</p>
+
+                <h4>❓ How do routers implement SLA?</h4>
+                <ol>
+                    <li>Packet arrives at the input line.</li>
+                    <li>Routing table determines the output line.</li>
+                    <li>Packet is forwarded through the backplane.</li>
+                </ol>
+
+                <h4>🧠 At the output line:</h4>
+                <ul>
+                    <li><strong>Scheduling Algorithm</strong> is used</li>
+                    <li>Packets are buffered according to Class of Service (SLA)</li>
+                </ul>
+
+                <h4>🎯 Output line scheduling:</h4>
+                <ul>
+                    <li>Each output port has multiple buffers</li>
+                    <li>Each buffer corresponds to a Class of Service</li>
+                    <li>Scheduling algorithm selects packets from these buffers accordingly</li>
+                </ul>
+
+                <p>⏱ <strong>Time Scale:</strong> Packet-level (μs–ms)</p>
+
+                <p><em>Diagram shows:</em></p>
+                <ul>
+                    <li>Flow through router's internals</li>
+                    <li>SLA-based class queues and scheduling</li>
+                    <li>Example of end-to-end path with different routers (R1, R2, etc.) forwarding traffic based on SLA</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📦 Scheduler of Output Line N</h2>
+                <p><em>(Implementation of SLA)</em></p>
+
+                <h3>🔁 Packet Flow:</h3>
+                <ol>
+                    <li>A packet (P) comes from the Backplane.</li>
+                    <li>It enters a Demultiplexer (Demux).</li>
+                    <li>The DSCP field is read to identify the SLA class.</li>
+                    <li>The packet is queued in the appropriate Class Buffer based on SLA (e.g., Class 1, Class M).</li>
+                </ol>
+
+                <h3>🧠 Scheduler (S):</h3>
+                <ul>
+                    <li>Each output line N has its own scheduler.</li>
+                    <li>The scheduling algorithm (S) selects from the available SLA queues.</li>
+                </ul>
+
+                <h3>🛠 S does the following:</h3>
+                <p><i>"Decides which is the packet to be served next on a packet-by-packet timescale."</i></p>
+
+                <h3>ℹ️ Notes:</h3>
+                <ul>
+                    <li><strong>N:</strong> Number of output lines.</li>
+                    <li><strong>M:</strong> Number of SLA classes implemented.</li>
+                    <li>SLA classes are mapped to separate queues and managed individually.</li>
+                    <li>The entire mechanism ensures traffic differentiation and SLA enforcement per packet.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>🧠 Logical & Physical Architecture of Routers</h2>
+
+                <h3>✳️ Diagram Overview:</h3>
+                <ul>
+                    <li>Input Interfaces (LAPA1, LAPA2, ..., LAPA128) connect to the Backplane.</li>
+                    <li>Packets are directed through the Backplane to corresponding Output interfaces (Output 1, 2, ..., N).</li>
+                    <li>Output flows go into Class-based queues (C(SLAclass)).</li>
+                    <li>Right-hand side shows a physical backplane scheme.</li>
+                </ul>
+
+                <h3>🔍 Key Points:</h3>
+                <ul>
+                    <li>Switched packets from inputs to outputs must be handled by a very high-speed module.</li>
+                </ul>
+
+                <h4>Assumptions:</h4>
+                <ul>
+                    <li>Number of ports: \( N = 128 \)</li>
+                    <li>Speed per port: \( C = 1 \text{ Gbit/s} \)</li>
+                    <li>Required backplane speed:</li>
+                </ul>
+                \[ \text{Switching capacity} = 128 \times 10^9 \text{ bit/s} \]
+
+                <h3>🔀 Backplane Types:</h3>
+                <ul>
+                    <li><strong>Wirespeed Backplane</strong>
+                        <ul>
+                            <li>Bandwidth \( \ge N \times C \)</li>
+                            <li>Ideal case: All traffic can be switched with no internal delay.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Non-wirespeed Backplane</strong>
+                        <ul>
+                            <li>Bandwidth \( < N \times C \)</li>
+                            <li>Leads to internal contention and additional delay.</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>📌 Interpretation:</h3>
+                <p>This slide emphasizes how the internal switch fabric (backplane) must be fast enough to match the line speeds. If not, it causes performance degradation and potentially violates SLA guarantees, especially in real-time traffic.</p>
+            </section>
+
+            <section>
+                <h2>🧠 How Does the Scheduling Algorithm Work?</h2>
+
+                <h3>✳️ Diagram Overview:</h3>
+                <ul>
+                    <li>Multiple class-based queues (e.g., Class1, Class2, ..., ClassM) represent different SLAs (Service Level Agreements).</li>
+                    <li>A scheduler (S) selects packets from these queues.</li>
+                    <li>Once a packet has finished transmitting, the scheduler decides which packet is next.</li>
+                </ul>
+
+                <h3>❓ What Is the Choice the Scheduler Must Do?</h3>
+                <p><i>"When the transmission of a packet is over, it must decide which packet is to be served next."</i></p>
+
+                <h3>📦 Example Timeline:</h3>
+                <ul>
+                    <li>Class3 provides Packet I.</li>
+                    <li>After Packet I is transmitted (between "start" and "end"), the scheduler must decide whether the next packet (e.g., from Class2) should be transmitted next.</li>
+                </ul>
+
+                <h3>⚙️ Key Concepts:</h3>
+                <ul>
+                    <li>The scheduler enforces SLA by choosing which queue to serve based on QoS policies (e.g., priority, fairness, delay bounds).</li>
+                    <li>This decision happens after each packet transmission.</li>
+                    <li>Typical scheduling algorithms: Round Robin, Weighted Fair Queueing (WFQ), Priority Queueing, etc.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>🕒 Scheduling Timing: When Should the Scheduler Decide?</h2>
+
+                <h3>🧩 Problem:</h3>
+                <p>If the scheduler waits until the end of a packet's transmission (\(t_{stop}\)) to decide which packet to send next, this causes a gap before the next transmission starts.</p>
+
+                <h3>✋ Why is this bad?</h3>
+                <ul>
+                    <li>Decision time is not zero.</li>
+                    <li>These gaps between packets result in wasted transmission capacity (i.e., underutilized network resources).</li>
+                </ul>
+
+                <h3>✅ Solution:</h3>
+                <p><i>"The scheduler must start making the decision for the next packet at \(t_{start}\) of the current packet.”</i></p>
+                <p>This ensures that the next packet is ready to be sent immediately after the current one finishes — no idle time, no wasted bandwidth.</p>
+
+                <h3>📊 Timeline Diagram:</h3>
+                <ul>
+                    <li>Packet \(i\) is being sent from \(t_{start}\) to \(t_{stop}\).</li>
+                    <li>If the decision for Packet \(i+1\) is made before \(t_{stop}\), it can begin right away.</li>
+                    <li>If not, a gap occurs (wasted time).</li>
+                </ul>
+
+                <h3>🧠 Insight:</h3>
+                <p>Efficient scheduling must overlap computation (decision-making) with transmission, similar to pipelining in CPU design.</p>
+            </section>
+
+            <section>
+                <h2>⏱️ How Long is the Available Time for Scheduling Decisions?</h2>
+
+                <h4>Parameters:</h4>
+                <ul>
+                    <li>Link capacity (C) = 10 Gbit/s</li>
+                    <li>Packet size (L) = 1000 bits</li>
+                </ul>
+
+                <h4>⏲️ Transmission Time:</h4>
+                <ul>
+                    <li>A packet starts transmission at \(t_{start}\).</li>
+                    <li>It ends at \(t_{stop} = t_{start} + (L / C)\).</li>
+                    <li>Therefore,</li>
+                </ul>
+                \[ t_{stop} = t_{start} + \frac{1000}{10 \times 10^9} = t_{start} + 0.1 \mu s \]
+
+                <h4>⚠️ Conclusion:</h4>
+                <ul>
+                    <li>The decision time is extremely short (just 0.1 microseconds!).</li>
+                    <li>So the scheduling algorithm must:
+                        <ul>
+                            <li>Be simple</li>
+                            <li>Be fast</li>
+                            <li>Make decisions very quickly</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h3>📌 Key Insight:</h3>
+                <p>Short decision time ⇒ Simple decisions.</p>
+                <p>This constraint pushes network designers to prefer lightweight and efficient scheduling algorithms.</p>
+            </section>
+
+            <section>
+                <h2>⚙️ Types of Schedulers</h2>
+                <p>There are various scheduling algorithms, each with different properties:</p>
+                <ul>
+                    <li><strong>Non-preemptive:</strong> Once a packet starts transmission, it cannot be interrupted.</li>
+                    <li><strong>Preemptive:</strong> A higher-priority packet can interrupt a lower-priority packet currently being transmitted.</li>
+                    <li><strong>Work conserving:</strong> The output link is never idle if there are packets waiting in any queue.</li>
+                    <li><strong>Non-work conserving:</strong> The output link might be idle even if packets are waiting (e.g., to shape traffic).</li>
+                </ul>
+
+                <h3>Non-Preemptive vs. Preemptive Schedulers</h3>
+                <ul>
+                    <li><strong>Non-preemptive:</strong> Simpler to implement but can cause delay for high-priority packets stuck behind large, low-priority packets (Head-of-Line blocking).</li>
+                    <li><strong>Preemptive:</strong> Better for low-latency requirements but more complex. Requires mechanisms to handle interrupted packets (e.g., resume or restart transmission).</li>
+                </ul>
+
+                <h3>Work Conserving vs. Non-Work Conserving</h3>
+                <ul>
+                    <li><strong>Work Conserving:</strong> Maximizes link utilization but can make it harder to control traffic flow precisely.</li>
+                    <li><strong>Non-Work Conserving:</strong> Useful for traffic shaping (controlling the rate and burstiness) but potentially underutilizes the link.</li>
+                </ul>
+
+                <h3>🎯 Goal:</h3>
+                <p>Choose a scheduling algorithm that balances complexity, performance (delay, throughput, fairness), and the specific QoS requirements of the network.</p>
+            </section>
+
+            <section>
+                <h2>🧠 Complexity of SLA-Based Decisions</h2>
+                <p>SLA = \((d, p)\)</p>
+                <ul>
+                    <li>\(d\): Delay</li>
+                    <li>\(p\): Probability</li>
+                </ul>
+
+                <h3>🧩 Issue:</h3>
+                <ul>
+                    <li>It is too complex to take into account \((d, p)\) to carry out scheduling decisions in real-time.</li>
+                    <li>The scheduler (S) does not actually know \((d, p)\) values.</li>
+                    <li>Instead, it only sees a code (6-bit) embedded in the packet's header.</li>
+                </ul>
+
+                <h3>📌 Key Insight:</h3>
+                <ul>
+                    <li>Decision-making in routers cannot afford complex operations during packet transmission.</li>
+                    <li>So SLA classes are represented by a code (often via the DSCP field) that refers to predefined treatment rules.</li>
+                </ul>
+
+                <h3>🛠️ Implication for Design:</h3>
+                <ul>
+                    <li>Packets are assigned to SLA classes (e.g., SLA1, SLA2, ..., SLAM).</li>
+                    <li>The code is used to identify the class quickly—not the actual SLA values.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>🌐 Network Flow Management Overview</h2>
+
+                <h3>1. Incoming Connection</h3>
+                <ul>
+                    <li>Enters the network domain.</li>
+                    <li>Triggers Admission Control and Resource Allocation.</li>
+                </ul>
+
+                <h3>📥 Admission Control</h3>
+                <ul>
+                    <li>This is where the network decides to accept or reject the connection.</li>
+                </ul>
+
+                <h3>📝 Decision is based on:</h3>
+                <ul>
+                    <li>Scheduler behavior (denoted as S)</li>
+                    <li>Resource availability</li>
+                </ul>
+
+                <h3>🧠 Scheduler S (per-hop operation)</h3>
+                <ul>
+                    <li>Works at packet time scale</li>
+                    <li>Performs simple algorithm to choose which packet to serve next.</li>
+                    <li>Can differ between service classes.</li>
+                </ul>
+
+                <p>🧩 Even though the packet-by-packet decision is simple,</p>
+                <ul>
+                    <li>The long-term admission control decision depends on how S behaves.</li>
+                </ul>
+
+                <h3>⏳ Time Scales Recap:</h3>
+                <ul>
+                    <li>Connection time scale → Admission & resource allocation</li>
+                    <li>Packet time scale → Scheduling per SLA</li>
+                </ul>
+
+                <h3>✅ Conclusion:</h3>
+                <p>The decision to admit a new connection is tied to how the scheduler will behave once the flow is active. Efficient scheduling enables better acceptance decisions.</p>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset(); 
+        });
+      });
+    </script>
+</body>
+</html> 

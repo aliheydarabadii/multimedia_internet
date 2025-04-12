@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Packet Classification - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+      // MathJax Configuration
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        h3 { margin-top: 2rem; margin-bottom: 1rem; color: #34495e; }
+        h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; color: #555; }
+        p { margin-bottom: 1rem; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .warning-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .warning-box i { color: #ffc107; margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li class="active"><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-sitemap"></i> Packet Classification</h2>
+
+            <section>
+                <h3>Core Concept: Classification</h3>
+                <ul>
+                    <li>Classification is used to determine which SLA (Service Level Agreement) applies to a packet.</li>
+                    <li>It allows policies like Policing, Shaping, and Marking to act accordingly based on the SLA assigned.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🔍 How is a Packet Classified?</h3>
+                <h4>➤ Most common classification method: 5-tuple</h4>
+                <p>The classifier uses the following 5 fields from the packet header:</p>
+                <ol>
+                    <li>Source IP address</li>
+                    <li>Destination IP address</li>
+                    <li>Source port</li>
+                    <li>Destination port</li>
+                    <li>Protocol (TCP/UDP/ICMP, etc.)</li>
+                </ol>
+                <p>These fields help uniquely identify the flow of packets and decide the SLA.</p>
+                
+                <h4 style="margin-top: 1.5rem;">🔷 5-Tuple Components Breakdown:</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Source IP Address</strong> (Header)</li>
+                    <li><strong>Source Port</strong> (Payload) – <span style="color: #dc3545;">🔴 Transport-level</span></li>
+                    <li><strong>Destination IP Address</strong> (Header)</li>
+                    <li><strong>Destination Port</strong> (Payload) – <span style="color: #dc3545;">🔴 Transport-level</span></li>
+                    <li><strong>Protocol</strong> (Header - e.g., TCP/UDP/ICMP)</li>
+                </ul>
+                <p>These five fields together uniquely identify a TCP/IP connection.</p>
+
+                <h4 style="margin-top: 1.5rem;">🔗 How It Works</h4>
+                <p>A 5-tuple acts like a label for a connection, allowing routers and switches to correctly classify and forward packets. Here's how it maps in a typical client-server communication:</p>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Client Side (Socket 1):</strong>
+                        <ul>
+                            <li>IP Address: Assigned by the network.</li>
+                            <li>Port Number: Dynamically selected from available ports.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Server Side (Socket 2):</strong>
+                        <ul>
+                            <li>IP Address: Static or known domain-resolved.</li>
+                            <li>Port Number: Fixed, depending on the service (e.g., Port 80 for HTTP, Port 25 for Email).</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>Together, these sockets create a connection like:</p>
+                <p><code>(Client_IP, Client_Port) &lt;==&gt; (Server_IP, Service_Port)</code></p>
+
+                <h4 style="margin-top: 1.5rem;">💡 Real-World Example</h4>
+                <p>Imagine a client browsing a website over HTTP:</p>
+                <ul>
+                    <li>Client's socket: <code>(192.168.1.100, 49532)</code></li>
+                    <li>Server's socket: <code>(203.0.113.10, 80)</code></li>
+                </ul>
+                <p>This combination uniquely identifies the session between the client and the web server.</p>
+
+                <div class="key-point" style="margin-top: 1rem;">
+                    <i class="fas fa-lock"></i>
+                    <div>
+                        <strong>🔐 Security/Encryption Note:</strong>
+                        <p style="margin-bottom: 0;">Most source/destination IP addresses and ports are <strong>not</strong> encrypted, making the 5-tuple visible to network devices like firewalls and load balancers. This is critical for traffic classification, Quality of Service (QoS), and enforcing policies.</p>
+                    </div>
+                </div>
+
+                <h4 style="margin-top: 1.5rem;">📌 Why It Matters / Key Use Cases:</h4>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Defines and tracks connections.</li>
+                    <li>Enables Quality of Service (QoS) policies and SLA enforcement.</li>
+                    <li>Helps classify traffic for routing or shaping.</li>
+                    <li>Is essential for firewall rules, Network Address Translation (NAT), and intrusion detection systems.</li>
+                 </ul>
+            </section>
+
+            <section>
+                <h3>🔧 Packet Structure:</h3>
+                <p>The packet consists of:</p>
+                <ul>
+                    <li>Payload (data)</li>
+                    <li>Header with the 8-bit DSCP field
+                        <ul>
+                            <li>This is used for Differentiated Services (DiffServ) and maps to PHB (Per-Hop Behavior).</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>Classification matches packets to SLA rules using these keys and header values.</p>
+            </section>
+
+            <section>
+                <h3>🧭 Components Flow:</h3>
+                <ul>
+                    <li><strong>Classifier</strong> inspects the packet using the 5-tuple.</li>
+                    <li>It applies:
+                        <ul>
+                            <li>SLA</li>
+                            <li>TCA (Traffic Conditioning Agreement)</li>
+                        </ul>
+                    </li>
+                    <li>Then actions are performed (via):
+                        <ul>
+                            <li><strong>Policer:</strong> checks conformance</li>
+                            <li><strong>Shaper:</strong> delays excess traffic</li>
+                            <li><strong>Marker:</strong> tags the packet (e.g., set DSCP)</li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🧠 Classifier Logic and SLA Application</h3>
+                <p>The classifier analyzes the 5-tuple (typically 104 bits of data) and applies specific Service Level Agreements (SLAs) or Traffic Conditioning Agreements (TCAs) depending on predefined rules.</p>
+                <p>Here's how this works (example logic):</p>
+                <pre style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 1rem; border-radius: 4px; line-height: 1.5;"><code>IF source IP is in 192.10.10.* AND destination port is 80:
+    APPLY SLA(1), TCA(1)
+
+ELSE IF source IP is in 192.1.10.* AND
+        destination port is 80 AND
+        destination IP is in 200.11.12.*:
+    APPLY SLA(2), TCA(2)
+
+ELSE:
+    APPLY Best Effort SLA</code></pre>
+
+                <h4 style="margin-top: 1.5rem;">🧩 Why This Matters</h4>
+                <p>By using rule-based classification, the network can:</p>
+                <ul>
+                    <li>Apply priority handling for critical traffic</li>
+                    <li>Ensure QoS guarantees for premium users</li>
+                    <li>Route traffic differently based on source, destination, and purpose</li>
+                    <li>Enforce policies like throttling, shaping, or redirection</li>
+                </ul>
+
+                <h4 style="margin-top: 1.5rem;">💼 Use Case Example</h4>
+                <ul>
+                    <li>Video streaming from a corporate server (<code>192.10.10.*</code> to port 80) receives guaranteed throughput via SLA(1).</li>
+                    <li>Internal web app traffic from <code>192.1.10.*</code> to <code>200.11.12.*</code> gets medium-priority treatment via SLA(2).</li>
+                    <li>All other connections get best-effort service.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🔎 Deep Packet Inspection (DPI) and Payload Parsing</h3>
+                <p>In some advanced scenarios, traffic classifiers go beyond the 5-tuple and inspect the packet <strong>payload</strong>. This allows the system to detect which application a packet truly belongs to — especially useful when many apps use the same port, like port 80 (commonly used for web traffic).</p>
+                <h4>⚠️ Why Parse the Payload?</h4>
+                <ul>
+                    <li><strong>✅ Problem:</strong> Port 80 is overloaded — used by browsers, video streams, messaging apps, and more.</li>
+                    <li><strong>✅ Solution:</strong> Parsing the payload helps classifiers identify the <em>actual application</em>, improving accuracy in applying SLAs and traffic shaping rules.</li>
+                </ul>
+
+                <h4>🧮 The Cost of Precision</h4>
+                <p>However, this approach introduces computational complexity:</p>
+                <ul>
+                    <li>Payload parsing takes processing power.</li>
+                    <li>Rule sets can include thousands of entries.</li>
+                    <li>All this must happen in real time, making decision latency critical.</li>
+                </ul>
+                <p>🕒 <strong>Time required = critical bottleneck</strong></p>
+
+                <h4>🧷 Summary: Pros vs. Cons</h4>
+                <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #d4edda; color: #155724;">Pros</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f8d7da; color: #721c24;">Cons</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Better identification of traffic</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">High computational cost</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Improves SLA accuracy</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Slower decision-making</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Useful in encrypted or crowded ports</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Risk of performance bottlenecks</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h3>⚙️ Real-Time Classification: The Hidden Challenge in Modern Networks</h3>
+                <p>In packet classification, knowing the Service Level Agreement (SLA) of each packet is essential. But when classification takes time, we lose the ability to act fast.</p>
+
+                <h4>🚫 The Buffering Problem</h4>
+                <p>When we don't know the SLA at the time of packet arrival, we need to <strong>buffer</strong> the packets before deciding how to handle them. This leads to:</p>
+                <ul>
+                    <li>Increased delay</li>
+                    <li>Uncontrollable queueing</li>
+                    <li>Inability to prioritize important traffic</li>
+                </ul>
+                <p>🔴 We must try to avoid this buffering.</p>
+
+                <h4>🧠 Why Delay Happens</h4>
+                <ul>
+                    <li>Too many classification rules</li>
+                    <li>Parsing takes time (especially with DPI)</li>
+                    <li>Delay grows, even before we know which packets deserve priority</li>
+                </ul>
+                <p>If classification is not fast enough, we can't:</p>
+                <ul>
+                    <li>Ensure QoS</li>
+                    <li>Apply SLAs correctly</li>
+                    <li>Maintain performance at scale</li>
+                </ul>
+
+                <h4>⚡ The Ideal: Wire-Speed Classification</h4>
+                <p>The goal is to perform classification at <strong>line-rate (wire-speed)</strong> — while the packet is still entering the device. This is also called line-rate processing.</p>
+                <ul>
+                    <li>But achieving this requires advanced technology, which is often costly.</li>
+                </ul>
+
+                <h4>✅ Summary Comparison</h4>
+                 <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f8d7da; color: #721c24;">Without Real-Time Classification</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #d4edda; color: #155724;">With Wire-Speed Classification</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Buffers grow uncontrollably</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Immediate SLA recognition</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Important packets may be delayed</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Priority handling is enabled</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">SLA enforcement fails</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Quality of Service is preserved</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h3>✅ Summary:</h3>
+                <p>Classification is the entry point of packet handling in a QoS (Quality of Service) system, deciding the SLA and triggering all traffic conditioning actions based on predefined rules.</p>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset();
+        });
+      });
+    </script>
+</body>
+</html> 
