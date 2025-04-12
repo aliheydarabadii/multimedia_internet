@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Conditioning Components - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+      // MathJax Configuration
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .conclusion-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: #fff9db; border-radius: 8px; border-left: 4px solid #f1c40f; }
+        .conclusion-box i { color: #f1c40f; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li class="active"><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-shield-alt"></i> Simple Implementation of Policing: Token Bucket</h2>
+            
+            <h3><i class="fas fa-box"></i> What is Token Bucket?</h3>
+            <p>The Token Bucket is a commonly used mechanism in network policing. It determines whether packets conform to a traffic profile and decides if they should be forwarded or dropped.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="far fa-file-alt"></i> How It Works</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>A counter holds tokens, representing permission to send packets.</li>
+                <li>Tokens are added at a steady rate \(r\) tokens/second.</li>
+                <li>The counter has a maximum size of \(b\) tokens (burst capacity).</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Token Bucket Behavior</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>Every 1 second (or at a defined interval):
+                     <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>The counter is incremented by 1 token, up to the maximum \(b\).</li>
+                     </ul>
+                </li>
+                <li style="margin-top: 0.5rem;">Each time a packet arrives:
+                     <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>A token is removed from the counter.</li>
+                        <li>If a token is available → the packet is allowed.</li>
+                        <li>If no token is available → the packet is dropped.</li>
+                     </ul>
+                </li>
+                 <li style="margin-top: 0.5rem;">If a token arrives when the counter is already at \(b\):
+                     <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>The token is discarded (to avoid overflow).</li>
+                     </ul>
+                 </li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sync-alt"></i> Key Concepts</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li><strong>Meter:</strong> Tracks the number of tokens.</li>
+                <li><strong>Policer:</strong> Uses the token bucket to enforce limits.</li>
+                <li><strong>Traffic Regulation:</strong> Ensures users send traffic within the allowed rate.</li>
+            </ul>
+
+             <div class="conclusion-box" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                 <i class="fas fa-search" style="color: #6c757d;"></i>
+                 <p><strong>In Summary:</strong> The Token Bucket Filter helps enforce network policies by controlling the rate of incoming packets. It's effective in preventing congestion and ensuring fair bandwidth usage among users.</p>
+            </div>
+
+        </div>
+
+        <section class="token-bucket-flowchart" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-project-diagram"></i> Token Bucket Flowchart</h2>
+
+            <h3><i class="fas fa-binoculars"></i> Overview</h3>
+            <p>This flowchart represents the logic of the Token Bucket algorithm used in network policing. It handles two parallel flows: incoming packets and incoming tokens.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                    <h4 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-envelope"></i> Packet Arrival Logic</h4>
+                    <ol style="padding-left: 1.5rem;">
+                        <li>Packet Arrives</li>
+                        <li><strong>Check Counter</strong><br/>
+                            👉 Is the token counter greater than 0?</li>
+                        <li>
+                            <ul style="list-style: none; padding-left: 1rem;">
+                                <li><strong>Yes</strong> → Forward the packet to output<br/>
+                                    <span style="font-size: 0.9em; color: #6c757d;">➤ Decrease the counter by 1</span>
+                                </li>
+                                <li style="margin-top: 0.5rem;"><strong>No</strong> → Drop the packet</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                     <h4 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-sync-alt"></i> Token Arrival Logic</h4>
+                     <ol style="padding-left: 1.5rem;">
+                        <li>Token Arrives</li>
+                        <li><strong>Check Bucket Capacity</strong><br/>
+                            👉 Is the counter value less than maximum limit \(b\)?</li>
+                        <li>
+                            <ul style="list-style: none; padding-left: 1rem;">
+                                <li><strong>Yes</strong> → Increase the counter by 1</li>
+                                <li style="margin-top: 0.5rem;"><strong>No</strong> → Discard the token<br/>
+                                     <span style="font-size: 0.9em; color: #6c757d;">➤ This is referred to as "dropping the token"</span>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-cogs"></i> Visual Explanation</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>Each token allows 1 packet to pass through.</li>
+                <li>The counter is incremented at regular intervals and decremented with each forwarded packet.</li>
+                <li>Packets are only forwarded if tokens are available, enforcing the rate limits set by network administrators.</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-check-circle"></i> Why It Matters</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>Fair traffic shaping</li>
+                <li>Protection against bandwidth hogging</li>
+                <li>Smooth traffic flow across shared links</li>
+            </ul>
+
+        </section>
+
+        <section class="token-bucket-shaper-flowchart" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-brain"></i> Token Bucket Shaper Flowchart</h2>
+
+            <h3><i class="fas fa-sync-alt"></i> Overview</h3>
+            <p>The Token Bucket Shaper enforces traffic smoothing by using a buffer to queue incoming packets when tokens are unavailable. Unlike the policer, it avoids immediate packet drops and instead shapes the outgoing traffic.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-cogs"></i> Shaper Logic Breakdown</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                    <h4 style="display: flex; align-items: center; gap: 0.5rem;">1. Packet Arrival</h4>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li>➤ Is buffer full? (i.e., \(m > 0\), where \(m\) is the number of queued packets)
+                             <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                <li><strong>Yes</strong> → Queue the packet</li>
+                                <li style="margin-top: 0.5rem;"><strong>No</strong> (buffer is empty):
+                                    <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                        <li>Check counter value:
+                                             <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                                <li>If counter > 0 →<br/>
+                                                    <span style="padding-left: 1rem;">→ Forward packet to output</span><br/>
+                                                    <span style="padding-left: 1rem;">→ Decrease counter by 1</span>
+                                                </li>
+                                                <li style="margin-top: 0.5rem;">If counter == 0 →<br/>
+                                                     <span style="padding-left: 1rem;">→ Queue the packet</span>
+                                                </li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                             </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                     <h4 style="display: flex; align-items: center; gap: 0.5rem;">2. Token Arrival</h4>
+                     <ul style="list-style: none; padding-left: 0;">
+                         <li>➤ Is there any queued packet? (\(m > 0\))
+                            <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                <li><strong>Yes</strong> → Forward 1 queued packet</li>
+                            </ul>
+                        </li>
+                        <li style="margin-top: 0.5rem;">➤ If no packet queued:
+                             <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                <li>Check if counter < \(b\) (bucket size):
+                                     <ul style="list-style: none; padding-left: 1rem; margin-top: 0.25rem;">
+                                        <li><strong>Yes</strong> → Increase counter by 1</li>
+                                        <li style="margin-top: 0.5rem;"><strong>No</strong> → Token is dropped<br/>
+                                            <span style="font-size: 0.9em; color: #6c757d;">(i.e., counter is already full)</span>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                     </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-toolbox"></i> Key Concepts</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li><strong>Buffer (BUF):</strong> Temporarily stores packets until tokens become available.</li>
+                <li><strong>Counter (∈ [0, \(b\)]):</strong> Stores tokens, controlling packet flow.</li>
+                <li><strong>Rate (\(r\) [token/s]):</strong> Rate at which tokens are added.</li>
+                <li>Traffic is delayed but not dropped—ideal for delay-tolerant applications.</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-chart-line"></i> Why It Matters</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>🔄 Ensures smoother traffic bursts</li>
+                <li>✅ Avoids packet loss</li>
+                <li>🚦 Controls congestion proactively</li>
+            </ul>
+
+        </section>
+
+        <section class="token-bucket-policer-envelope" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-chart-area"></i> Token Bucket Policer: Burst and Traffic Envelope</h2>
+
+            <h3><i class="fas fa-search"></i> Concept</h3>
+            <p>The Token Bucket Policer enforces a strict rate limit by allowing only packets that match the available tokens to pass through. This mechanism introduces a traffic envelope that controls how bursts are handled.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-traffic-light"></i> Scenario Example</h3>
+            <p>Assumptions:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>Arrival time \(t = 0\)</li>
+                <li>Counter \(C = b\) (bucket is full)</li>
+                <li>\(b\) packets arrive simultaneously</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-chart-line"></i> What Happens?</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>Initial Burst:</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>All \(b\) packets are allowed to pass instantly because the bucket is full (counter = \(b\)).</li>
+                        <li>➤ Burst = \(b\) packets</li>
+                    </ul>
+                </li>
+                <li style="margin-top: 0.5rem;"><strong>Post-Burst Regulation:</strong>
+                     <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>The counter immediately drops to 0.</li>
+                        <li>From that point onward, only one packet per \(1/r\) seconds can be admitted (where \(r\) is the token rate).</li>
+                     </ul>
+                </li>
+                <li style="margin-top: 0.5rem;"><strong>Visual Representation:</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>The blue staircase graph shows cumulative packet output.</li>
+                        <li>The yellow line is the Envelope of Traffic—the maximum allowed packets over time.</li>
+                        <li>Once the burst ends, traffic is limited to a steady rate of \(r\) tokens/sec.</li>
+                    </ul>
+                </li>
+            </ul>
+
+             <h3 style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Envelope Equation</h3>
+             <p>After \(t = 0\):</p>
+             <ul style="margin-left: 1.5rem;">
+                <li>Packets must follow the rate envelope defined by:</li>
+                     <p style="text-align: center; font-size: 1.1em; margin: 0.5rem 0; font-family: monospace;">
+                        \( b + r \times t \)
+                     </p>
+                 <li>This restricts traffic to the maximum of \(b\) packets initially, then \(r\) packets per second.</li>
+             </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-wrench"></i> Key Takeaways</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>✔️ Supports bursty traffic with an initial allowance (\(b\))</li>
+                <li>🚫 Rejects or drops packets exceeding the token count</li>
+                <li>📉 Once depleted, traffic resumes at a steady rate (\(r\))</li>
+                <li>🎯 Ideal for non-buffered policing where traffic must strictly follow SLA</li>
+            </ul>
+
+        </section>
+
+        <section class="token-bucket-initial-state" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-clock"></i> Initial State of the Token Bucket Policer</h2>
+            
+            <h3>What Happens at Time \(t = 0\)?</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>The counter at time \(0^-\) (just before time 0) is full by assumption, meaning:
+                    <p style="text-align: center; font-size: 1.1em; margin: 0.5rem 0; font-family: monospace;">
+                        counter = \(b\) (maximum token capacity)
+                    </p>
+                </li>
+                <li>At time \(t = 0\), a burst of \(b\) packets arrives simultaneously.</li>
+                <li>Each of these \(b\) packets consumes 1 token.</li>
+                <li>This causes the token counter to drop rapidly:</li>
+            </ul>
+
+            <div style="border: 1px dashed #6c757d; padding: 1rem; border-radius: 4px; background: #f8f9fa; margin-top: 1rem; margin-left: 1.5rem;">
+                <h4 style="margin-top: 0; margin-bottom: 0.5rem;">Calculation:</h4>
+                <ul style="margin-left: 1.5rem; padding-left: 0;">
+                    <li>Initial tokens = \(b\)</li>
+                    <li>\(b\) packets consume: \(b - 1 - 1 - \dots - 1 = 0\)</li>
+                    <li>⇒ counter = 0</li>
+                </ul>
+                 <p style="margin-top: 0.5rem; margin-bottom: 0;">✅ All \(b\) packets are allowed through, but the counter is now empty.</p>
+            </div>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 1.5rem;">
+                <i class="fas fa-brain" style="color: #6f42c1;"></i>
+                <p><strong>Insight:</strong> This moment highlights the burst allowance feature of the token bucket. The system permits an immediate surge of traffic (up to \(b\) packets), but post-burst traffic will be strictly regulated by the token generation rate \(r\).</p>
+            </div>
+        </section>
+
+        <section class="traffic-envelope-model" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-chart-bar"></i> Token Bucket: Traffic Envelope Model</h2>
+
+            <h3><i class="fas fa-route"></i> Cumulative Traffic</h3>
+            <p>This graph represents the total amount of traffic that flows through a reference network interface within the time interval \([0, t]\). It is measured in packets or bytes (typically bytes are used in practice).</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-vector-square"></i> Linear Traffic Envelope</h3>
+            <p>The green shaded area shows traffic that is conformant to the Token Bucket specification:</p>
+            \[ \text{Traffic} \le b + r \cdot t \]
+            <p>Where:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>\(b\): burst tolerance (in packets or bytes)</li>
+                <li>\(r\): token generation rate (in packets/sec or bytes/sec)</li>
+                <li>✅ Packets in this area are "green" (accepted and conformant).</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-ban" style="color: #dc3545;"></i> Non-Conformant Traffic (Red Zone)</h3>
+            <p>The red shaded region shows traffic that exceeds the envelope.</p>
+            <p>Any traffic above the envelope line (i.e., beyond \(b + r \cdot t\)) is considered:</p>
+             <ul style="margin-left: 1.5rem;">
+                 <li>🔴 Non-conformant</li>
+                 <li>🚫 Subject to dropping, re-marking, or delaying, depending on network policy.</li>
+             </ul>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 1.5rem;">
+                <i class="fas fa-brain" style="color: #6f42c1;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #5a348a;">🧠 Insight:</h4>
+                     <p style="margin: 0;">This envelope acts like a contractual boundary:<br/>
+                        If you stay within the linear envelope, you're safe and your SLA holds.<br/>
+                        If you exceed it, you may lose packets, or your service quality may degrade.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section class="traffic-constraints-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-cogs"></i> Traffic Constraints in Token Bucket</h2>
+
+            <h3><i class="fas fa-ruler-horizontal"></i> Parameters:</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li style="margin-bottom: 0.5rem;">
+                    <strong>\(b\) = "Burst Length"</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>This is the maximum burst size allowed, i.e., the longest burst of packets that can be sent instantly.</li>
+                        <li>It defines how much traffic is allowed at once without waiting for more tokens.</li>
+                    </ul>
+                </li>
+                <li>
+                     <strong>\(r\) = "Average Rate"</strong>
+                      <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>This is the long-term rate at which packets are allowed to pass.</li>
+                        <li>It corresponds to the rate at which tokens are generated in the bucket.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-chart-line"></i> Graph Insight</h3>
+            <p>In the chart, the green line represents the linear envelope that bounds conformant traffic:</p>
+            \[ \text{Traffic}(t) \le b + r \cdot t \]
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li>The vertical intercept (\(b\)) marks the initial burst size.</li>
+                <li>The slope (\(r\)) shows the average traffic rate allowed over time.</li>
+                <li>All traffic under this line is compliant.</li>
+            </ul>
+
+             <div class="conclusion-box" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                 <i class="fas fa-tag" style="color: #6c757d;"></i>
+                 <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #343a40;">📌 Key Takeaway</h4>
+                     <p style="margin: 0; font-style: italic;">"Clearly, in the long run, I can't offer a traffic flow with an average rate larger than \(r\)."</p>
+                     <p style="margin-top: 0.5rem;">This is the essence of token bucket regulation: while it allows short bursts (\(b\)), the average rate (\(r\)) must still be respected.</p>
+                 </div>
+            </div>
+        </section>
+
+        <section class="qos-contract-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-file-signature"></i> QoS Contract: SLA + TCA</h2>
+            <p>A QoS contract defines service quality expectations between the user and the provider. It consists of:</p>
+            
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;">1. SLA (Service Level Agreement)</h3>
+                <p>Describes:</p>
+                <ul style="margin-left: 1.5rem;">
+                    <li>Delay (\(d\)): Acceptable delay limit</li>
+                    <li>Probability (\(p\)): Probability of delay violation</li>
+                </ul>
+                <p>So:</p>
+                \[ SLA = (d, p) \]
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;">2. TCA (Traffic Conditioning Agreement)</h3>
+                <p>Specifies the traffic profile in terms of:</p>
+                 <ul style="margin-left: 1.5rem;">
+                    <li>\(A\): Average rate of traffic</li>
+                    <li>\(B\): Burst length</li>
+                    <li>\(P\): Peak rate of traffic</li>
+                </ul>
+                 \[ TCA = (A, B, P) \]
+            </div>
+
+             <div style="margin-top: 2rem; border-top: 1px dashed #ccc; padding-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-sync-alt"></i> Token Bucket and Traffic Enforcement</h3>
+                <p>Both Token Bucket Shaper and Policer follow the same principles. They enforce:</p>
+                 <p style="text-align: center; font-size: 1.1em; margin: 0.5rem 0; font-family: monospace;">
+                     ( A = \(r\), B = \(b\), P = \(\infty\) )
+                 </p>
+                <p>This means:</p>
+                 <ul style="margin-left: 1.5rem;">
+                    <li>Average rate (\(r\)) is controlled</li>
+                    <li>Burst size (\(b\)) is enforced</li>
+                    <li>Peak rate (\(P\)) is not limited (\(\infty\))</li>
+                </ul>
+                 <div class="key-point" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                    <p>⚠️ The Token Bucket Policer and Shaper do not limit peak traffic rate, only the average and burst behavior.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="srtcm-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-palette"></i> Single-Rate Three-Color Marker (SRTCM)</h2>
+            <p>The SRTCM is used to mark network traffic based on how well it conforms to a defined rate. It categorizes packets into Green, Yellow, or Red based on the current flow's behavior.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-wrench"></i> Main Parameters</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>CIR (Committed Information Rate):</strong> the average rate at which traffic is allowed (in bits/sec or packets/sec)</li>
+                <li style="margin-top: 0.5rem;"><strong>CBS (Committed Burst Size):</strong> maximum allowed burst size before packets are marked yellow</li>
+                <li style="margin-top: 0.5rem;"><strong>EBS (Excess Burst Size):</strong> additional burst allowance for yellow packets before turning red</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-traffic-light"></i> Packet Coloring Logic</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                 <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                     <i class="fas fa-circle" style="color: #28a745;"></i> <strong>Green:</strong> Packet does not exceed the CIR
+                 </li>
+                 <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #ffc107;"></i> <strong>Yellow:</strong> Packet exceeds CBS but not EBS
+                 </li>
+                 <li style="display: flex; align-items: center; gap: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #dc3545;"></i> <strong>Red:</strong> Packet exceeds both CBS and EBS
+                 </li>
+            </ul>
+
+             <div class="key-point" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                 <i class="fas fa-info-circle" style="color: #6c757d;"></i>
+                 <p><strong>Usage:</strong> This marker is typically used in DiffServ networks to decide how to treat packets (prioritize, drop, or delay them), depending on their color.</p>
+            </div>
+        </section>
+
+        <section class="srtcm-flowchart-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-project-diagram" style="color: #007bff;"></i> SRTCM: Single-Rate Three-Color Marker – Flowchart Logic</h2>
+            <p>SRTCM operates with two token buckets (Committed and Excess) to classify traffic into Green, Yellow, or Red based on how much it conforms to the configured rate and burst parameters.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-cogs"></i> Parameters</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>CIR (Committed Information Rate):</strong> Token generation rate (tokens per second)</li>
+                <li style="margin-top: 0.5rem;"><strong>CBS (Committed Burst Size):</strong> Tokens in the C bucket</li>
+                <li style="margin-top: 0.5rem;"><strong>EBS (Excess Burst Size):</strong> Tokens in the E bucket</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sign-in-alt"></i> Input Flow (Uncolored)</h3>
+            <p>When a packet of \(B\) bytes arrives at time \(t\), the algorithm checks two token buckets:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>\(T_c(t)\) = tokens in Committed bucket</li>
+                <li>\(T_e(t)\) = tokens in Excess bucket</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sync-alt"></i> Packet Classification Process</h3>
+            <ol style="margin-left: 1.5rem;">
+                <li style="margin-bottom: 1rem;">
+                    <strong>Check Committed Bucket (Green Test)</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.5rem;">
+                        <li>If \(T_c(t) \ge B\):
+                            <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                                <li>➤ Subtract \(B\) from \(T_c(t)\)</li>
+                                <li>➤ ✅ Packet is marked GREEN</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                 <li style="margin-bottom: 1rem;">
+                    <strong>Else, Check Excess Bucket (Yellow Test)</strong>
+                     <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.5rem;">
+                        <li>If \(T_e(t) \ge B\):
+                             <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                                <li>➤ Subtract \(B\) from \(T_e(t)\)</li>
+                                <li>➤ ⚠️ Packet is marked YELLOW</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Else:</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.5rem;">
+                       <li>❌ Packet is marked RED</li>
+                    </ul>
+                </li>
+            </ol>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-table"></i> Summary Table</h3>
+            <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+                 <thead>
+                    <tr style="background: #e9ecef;">
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Bucket</th>
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Condition</th>
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Action</th>
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Packet Color</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">\(T_c\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">\(\ge B\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">Subtract \(B\) from \(T_c\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;"><i class="fas fa-circle" style="color: #28a745;"></i> Green</td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">\(T_e\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">\(\ge B\) (if \(T_c < B\))</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">Subtract \(B\) from \(T_e\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;"><i class="fas fa-circle" style="color: #ffc107;"></i> Yellow</td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">None</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">\(< B\)</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">No tokens available</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;"><i class="fas fa-circle" style="color: #dc3545;"></i> Red</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 1.5rem;">
+                <i class="fas fa-brain" style="color: #6f42c1;"></i>
+                <p>🧠 This logic ensures that network traffic can burst temporarily (CBS), exceed occasionally (EBS), but is still bounded by contractual limits (CIR).</p>
+            </div>
+        </section>
+
+        <section class="srtcm-modes-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-bullseye"></i> SRTCM: Traffic Coloring Modes</h2>
+            <p>The Single-Rate Three-Color Marker (SRTCM) is a mechanism used to classify packets based on whether they conform to a predefined Service Level Agreement (SLA).</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-palette"></i> Traffic Classification</h3>
+            <p>SRTCM divides uncategorized incoming flow into three distinct logical flows:</p>
+            <ul style="list-style: none; padding-left: 0;">
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                     <i class="fas fa-circle" style="color: #28a745; margin-top: 0.2rem;"></i> 
+                     <div><strong>Green (Conformant)</strong> – Fully compliant with SLA (within CIR + CBS)</div>
+                 </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #ffc107; margin-top: 0.2rem;"></i> 
+                      <div><strong>Yellow (Middle Ground)</strong> – Slightly exceeds SLA but within EBS limits</div>
+                 </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #dc3545; margin-top: 0.2rem;"></i> 
+                      <div><strong>Red (Non-conformant)</strong> – Violates SLA (exceeds CIR + CBS + EBS)</div>
+                 </li>
+            </ul>
+             <p style="margin-top: 0.5rem;">These categories help determine how traffic is prioritized or dropped under congestion.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-brain"></i> Two Operating Modes</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1rem;">
+                <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                    <h4 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-eye-slash"></i> Color-Blind Mode</h4>
+                     <ul style="margin-left: 1.5rem;">
+                        <li>Ignores any prior coloring of packets.</li>
+                        <li>Treats all incoming traffic as uncolored.</li>
+                        <li>Reapplies marking from scratch using SRTCM logic.</li>
+                    </ul>
+                </div>
+                 <div style="border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                    <h4 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-eye"></i> Color-Aware Mode</h4>
+                     <ul style="margin-left: 1.5rem;">
+                        <li>Takes into account existing color tags on packets.</li>
+                        <li>For example: a packet already marked yellow won't be upgraded to green.</li>
+                        <li>Ensures stricter adherence to SLA when packets travel across multiple domains.</li>
+                    </ul>
+                </div>
+            </div>
+
+             <div class="key-point" style="background: #d1ecf1; border-left: 4px solid #0c5460; margin-top: 1.5rem;">
+                <i class="fas fa-globe-americas" style="color: #0c5460;"></i>
+                <p><strong>Why It Matters:</strong> Using color-aware vs. color-blind logic affects how packets are treated at network boundaries (e.g., between ISPs or across domains). It also influences fairness, performance, and SLA compliance in real-time.</p>
+            </div>
+        </section>
+
+        <section class="srtcm-color-aware-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-palette" style="color: #6f42c1;"></i> Color-Aware Mode in SRTCM</h2>
+            <p>In Color-Aware Mode, the SRTCM (Single-Rate Three-Color Marker) evaluates each packet based on its existing color and determines whether to downgrade it. This is different from the Color-Blind Mode, which ignores any previous color markings.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sync-alt"></i> Packet Evaluation Process</h3>
+            <p>Each arriving packet at time \(t\) goes through the following checks:</p>
+            <ol style="margin-left: 1.5rem;">
+                <li style="margin-bottom: 1rem;">
+                    <strong>Step 1: Check Green Eligibility</strong>
+                    <div style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        If:
+                         <ul style="margin-left: 1.5rem; list-style-type: square;">
+                             <li>Packet is green AND</li>
+                             <li>\(T_c(t) \ge B\)</li>
+                         </ul>
+                         Then:
+                         <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                            <li>Output packet remains <strong>green</strong></li>
+                            <li>Update: \(T_c(t) = T_c(t) - B\)</li>
+                         </ul>
+                    </div>
+                </li>
+                 <li style="margin-bottom: 1rem;">
+                     <strong>Step 2: Check Yellow Eligibility</strong>
+                      <div style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                         Else if:
+                         <ul style="margin-left: 1.5rem; list-style-type: square;">
+                             <li>Packet is green or yellow AND</li>
+                             <li>\(T_e(t) \ge B\)</li>
+                         </ul>
+                         Then:
+                          <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                            <li>Output packet becomes <strong>yellow</strong></li>
+                            <li>Update: \(T_e(t) = T_e(t) - B\)</li>
+                         </ul>
+                     </div>
+                 </li>
+                 <li>
+                    <strong>Step 3: Mark as Red</strong>
+                    <div style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                         Else:
+                          <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                            <li>Output packet is marked <strong>red</strong></li>
+                         </ul>
+                    </div>
+                 </li>
+            </ol>
+
+            <h4 style="margin-top: 1.5rem;"><i class="fas fa-calculator"></i> Definitions</h4>
+            <ul style="margin-left: 1.5rem;">
+                <li>\(B\) = Packet size</li>
+                <li>\(T_c(t)\) = Tokens in Committed Bucket (C) at time \(t\)</li>
+                <li>\(T_e(t)\) = Tokens in Excess Bucket (E) at time \(t\)</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-exchange-alt"></i> Coloring Rules Summary</h3>
+             <p>The visual rules for recoloring are as follows:</p>
+             <table style="width: auto; margin-left: 1.5rem; border: 1px solid #ccc;">
+                <thead>
+                    <tr style="background: #e9ecef;">
+                        <th style="padding: 0.5rem 1rem; border: 1px solid #ccc;">Input Color</th>
+                        <th style="padding: 0.5rem 1rem; border: 1px solid #ccc;">Output Possibilities</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;"><i class="fas fa-circle" style="color: #28a745;"></i> Green</td>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">
+                            <i class="fas fa-circle" style="color: #28a745;"></i> → 
+                            <i class="fas fa-circle" style="color: #ffc107;"></i> → 
+                            <i class="fas fa-circle" style="color: #dc3545;"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;"><i class="fas fa-circle" style="color: #ffc107;"></i> Yellow</td>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">
+                             <i class="fas fa-circle" style="color: #ffc107;"></i> → 
+                             <i class="fas fa-circle" style="color: #dc3545;"></i>
+                        </td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;"><i class="fas fa-circle" style="color: #dc3545;"></i> Red</td>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">
+                            <i class="fas fa-circle" style="color: #dc3545;"></i> only
+                        </td>
+                    </tr>
+                </tbody>
+             </table>
+             <div class="key-point" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-top: 1rem; margin-left: 1.5rem;">
+                 <i class="fas fa-exclamation-circle" style="color: #dc3545;"></i>
+                 <p><strong>Important:</strong> SRTCM only allows color <strong>downgrading</strong>. A red packet can't be upgraded to yellow or green.</p>
+            </div>
+
+            <div class="key-point" style="background: #d1ecf1; border-left: 4px solid #0c5460; margin-top: 1.5rem;">
+                <i class="fas fa-globe-americas" style="color: #0c5460;"></i>
+                <p><strong>Why This Matters:</strong> This conservative mode ensures that packets previously marked as non-conformant stay downgraded, preserving SLA boundaries when crossing domains or policies.</p>
+            </div>
+        </section>
+
+        <section class="srtcm-scenarios-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-globe"></i> Application Scenarios: Color Modes in SRTCM</h2>
+            <p>Understanding when to use Color-Blind or Color-Aware mode is essential in managing Quality of Service (QoS) across network boundaries.</p>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-network-wired"></i> Scenario A: Color-Blind Mode is OK</h3>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Context:</strong> User sends uncolored packets into a single network.</li>
+                    <li>Traffic Conditioner in Network 1 colors the packets (Green, Yellow, Red).</li>
+                    <li>The network does not rely on previous coloring—hence, Color-Blind Mode is sufficient.</li>
+                    <li style="margin-top: 0.5rem;"><strong>✅ Use Case:</strong><br/>
+                        <span style="margin-left: 1rem;">This works when packets are freshly evaluated and no prior coloring from other networks needs to be honored.</span>
+                    </li>
+                </ul>
+            </div>
+
+             <div style="margin-top: 2rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-route"></i> Scenario B: Recoloring in Color-Aware Mode</h3>
+                 <ul style="margin-left: 1.5rem;">
+                    <li><strong>Context:</strong> A user's application communicates across two networks.</li>
+                    <li>Network 1 uses TCA1 to color packets.</li>
+                    <li>Network 2 receives these already-colored packets.</li>
+                    <li>Traffic Conditioner in Network 2 applies Color-Aware Mode to downgrade packet colors based on new conditions (TCA2).</li>
+                     <li style="margin-top: 0.5rem;"><strong>🔁 Recoloring Happens Because:</strong>
+                         <ul style="margin-left: 1.5rem; list-style-type: square; margin-top: 0.25rem;">
+                            <li>The same application may have different Traffic Conditioning Agreements (TCA) in different networks.</li>
+                            <li>Each operator may protect its own network by enforcing stricter coloring rules.</li>
+                        </ul>
+                    </li>
+                     <li style="margin-top: 0.5rem;">
+                        <div class="key-point" style="background: #f8d7da; border-left: 4px solid #dc3545; margin-left: 0; padding: 0.75rem;">
+                             <i class="fas fa-shield-alt" style="color: #dc3545;"></i>
+                             <p style="margin-bottom: 0;"><strong>Important Note:</strong> Operator 2 may only downgrade packet colors (never upgrade), ensuring SLA protection.</p>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+             <div class="conclusion-box" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 2rem;">
+                <i class="fas fa-lightbulb" style="color: #6f42c1;"></i>
+                 <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #5a348a;">💡 Takeaway</h4>
+                     <ul style="padding-left: 1.5rem; margin: 0;">
+                         <li>Use Color-Blind Mode when there's no prior coloring.</li>
+                         <li>Use Color-Aware Mode when packets cross network domains and must preserve or adjust existing markings.</li>
+                     </ul>
+                </div>
+             </div>
+        </section>
+
+        <section class="srtcm-envelope-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-ruler-combined"></i> SRTCM: What Kind of Traffic Envelope Does It Enforce?</h2>
+            
+            <h3><i class="fas fa-wrench"></i> Parameters:</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li><strong>CIR (Committed Information Rate):</strong> → defines the average rate of traffic.</li>
+                <li style="margin-top: 0.5rem;"><strong>CBS (Committed Burst Size):</strong> → limits bursts of green packets.</li>
+                <li style="margin-top: 0.5rem;"><strong>EBS (Excess Burst Size):</strong> → allows additional bursts of yellow packets.</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-chart-area"></i> Enforced Traffic Envelope:</h3>
+            <p>SRTCM (Single Rate Three Color Marker) enforces a linear traffic envelope:</p>
+             <ul style="margin-left: 1.5rem;">
+                <li>Defined by the formula:
+                     \[ \Delta \le b + r \cdot t \]
+                </li>
+                 <li>Where:
+                     <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                         <li>\(b\) = burst size (related to CBS + EBS)</li>
+                         <li>\(r\) = average rate (related to CIR)</li>
+                         <li>\(t\) = time</li>
+                     </ul>
+                 </li>
+                 <li>This envelope is not capable of enforcing a peak rate.</li>
+             </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-box"></i> TCA Profile:</h3>
+             <p>The effective Traffic Conditioning Agreement profile enforced by SRTCM is:</p>
+            \[ TCA(A, B, P=\infty) \]
+             <ul style="margin-left: 1.5rem;">
+                <li>\(A\) = Average rate (corresponds to CIR)</li>
+                <li>\(B\) = Burst size (corresponds to CBS/EBS)</li>
+                <li>\(P = \infty\) → means there is no constraint on peak rate</li>
+            </ul>
+            <div class="key-point" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1rem;">
+                 <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                 <p><strong>Important:</strong> SRTCM cannot enforce the peak rate. It only regulates average rate and burst size.</p>
+            </div>
+        </section>
+
+        <section class="trtcm-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-palette" style="color: #6f42c1;"></i> Two-Rate Three-Color Marker (TRTCM)</h2>
+            <p>TRTCM is a traffic marking mechanism used in Quality of Service (QoS) frameworks. It classifies packets based on two different traffic rates and marks them with colors to indicate their priority and conformity.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-ruler-combined"></i> Main Parameters:</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li style="margin-bottom: 0.5rem;">
+                    <strong>PIR (Peak Information Rate)</strong><br/>
+                    <span style="margin-left: 1rem;">➤ Maximum allowable data rate.</span><br/>
+                    <span style="margin-left: 1rem;">➤ Unit: \(\text{bytes/sec}\)</span>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <strong>PBS (Peak Burst Size)</strong><br/>
+                     <span style="margin-left: 1rem;">➤ Size of bursts allowed at peak rate.</span><br/>
+                     <span style="margin-left: 1rem;">➤ Unit: \(\text{bytes}\)</span>
+                </li>
+                 <li style="margin-bottom: 0.5rem;">
+                    <strong>CIR (Committed Information Rate)</strong><br/>
+                     <span style="margin-left: 1rem;">➤ Guaranteed average rate the network agrees to provide.</span><br/>
+                     <span style="margin-left: 1rem;">➤ Unit: \(\text{bytes/sec}\)</span>
+                </li>
+                <li>
+                    <strong>CBS (Committed Burst Size)</strong><br/>
+                     <span style="margin-left: 1rem;">➤ Size of bursts allowed at committed rate.</span><br/>
+                     <span style="margin-left: 1rem;">➤ Unit: \(\text{bytes}\)</span>
+                </li>
+            </ul>
+             <div class="key-point" style="background: #e6f7ff; border-left: 4px solid #17a2b8; margin-top: 1rem; margin-left: 1.5rem;">
+                 <i class="fas fa-lightbulb" style="color: #17a2b8;"></i>
+                 <p>💡 The same units and concepts are used in SRTCM (Single Rate Three-Color Marker) as well.</p>
+            </div>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-box"></i> What Counts in Traffic Measurement?</h3>
+            <p>TRTCM uses IP-layer bytes for all traffic measurements:</p>
+             <ul style="margin-left: 1.5rem;">
+                <li><strong>Counted:</strong> ✔ Header + Payload (IP Packet contents)</li>
+                <li><strong>Not Counted:</strong> ❌ Layer-2 framing overhead (e.g., Ethernet headers)</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-paint-brush"></i> Color Assignment Logic (Conceptual):</h3>
+             <ul style="list-style: none; padding-left: 0;">
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                     <i class="fas fa-circle" style="color: #28a745; margin-top: 0.2rem;"></i> 
+                     <div><strong>Green:</strong> Traffic is within CBS and CIR</div>
+                 </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #ffc107; margin-top: 0.2rem;"></i> 
+                      <div><strong>Yellow:</strong> Traffic exceeds CBS but stays within PBS</div>
+                 </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                      <i class="fas fa-circle" style="color: #dc3545; margin-top: 0.2rem;"></i> 
+                      <div><strong>Red:</strong> Traffic exceeds PIR</div>
+                 </li>
+            </ul>
+            <p style="margin-top: 0.5rem;">This allows differentiated treatment of packets in congested scenarios (e.g., drop red first).</p>
+
+        </section>
+
+        <section class="trtcm-color-blind-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-palette" style="color: #007bff;"></i> TRTCM – Color-Blind Mode</h2>
+            <p>In Color-Blind Mode, the Two-Rate Three-Color Marker (TRTCM) assigns colors to packets based purely on their token availability, regardless of any pre-existing packet coloring.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-key"></i> Key Terms:</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>CIR (Committed Information Rate):</strong> Rate guaranteed by the network (uses CBS tokens)</li>
+                <li style="margin-top: 0.5rem;"><strong>PIR (Peak Information Rate):</strong> Maximum traffic rate allowed (uses PBS tokens)</li>
+                <li style="margin-top: 0.5rem;">\(B\): Size of the incoming packet in bytes</li>
+                <li style="margin-top: 0.5rem;">\(T_p(t)\): Number of tokens in the PIR (peak) bucket at time \(t\)</li>
+                <li style="margin-top: 0.5rem;">\(T_c(t)\): Number of tokens in the CIR (committed) bucket at time \(t\)</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sync-alt"></i> Classification Logic:</h3>
+            <p>➤ When a packet of size \(B\) arrives at time \(t\):</p>
+            <ul style="margin-left: 1.5rem; list-style: none; padding-left: 0;">
+                <li style="margin-bottom: 1rem;">
+                    If \(T_p(t) < B\):
+                     <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                        <li>→ Packet is <strong>RED</strong> <i class="fas fa-circle" style="color: #dc3545;"></i></li>
+                    </ul>
+                </li>
+                 <li style="margin-bottom: 1rem;">
+                    Else if \(T_c(t) < B\):
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                        <li>→ Packet is <strong>YELLOW</strong> <i class="fas fa-circle" style="color: #ffc107;"></i></li>
+                        <li>→ Update: \(T_p(t) = T_p(t) - B\)</li>
+                    </ul>
+                </li>
+                 <li>
+                    Else:
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                         <li>→ Packet is <strong>GREEN</strong> <i class="fas fa-circle" style="color: #28a745;"></i></li>
+                         <li>→ Update both counters:
+                            <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem; font-family: monospace;">
+                                 <li>\(T_c(t) = T_c(t) - B\)</li>
+                                 <li>\(T_p(t) = T_p(t) - B\)</li>
+                            </ul>
+                         </li>
+                    </ul>
+                 </li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-check-circle"></i> Color Result Summary:</h3>
+            <table style="width: auto; margin-left: 1.5rem; border: 1px solid #ccc; margin-top: 0.5rem;">
+                 <thead>
+                    <tr style="background: #e9ecef;">
+                        <th style="padding: 0.5rem 1rem; border: 1px solid #ccc;">Token Check</th>
+                        <th style="padding: 0.5rem 1rem; border: 1px solid #ccc;">Resulting Packet Color</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">\(T_p < B\)</td>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">RED <i class="fas fa-circle" style="color: #dc3545;"></i></td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">\(T_p \ge B\) & \(T_c < B\)</td>
+                         <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">YELLOW <i class="fas fa-circle" style="color: #ffc107;"></i></td>
+                    </tr>
+                     <tr>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">\(T_p \ge B\) & \(T_c \ge B\)</td>
+                        <td style="padding: 0.5rem 1rem; border: 1px solid #ccc;">GREEN <i class="fas fa-circle" style="color: #28a745;"></i></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="trtcm-envelope-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-chart-line"></i> Traffic Envelope of TRTCM</h2>
+            
+            <h3><i class="fas fa-lightbulb"></i> Concept:</h3>
+            <p>The Two-Rate Three-Color Marker (TRTCM) enforces a traffic envelope that combines:</p>
+             <ul style="margin-left: 1.5rem;">
+                <li>A burst at Peak Information Rate (PIR)</li>
+                <li>A sustained flow at Committed Information Rate (CIR)</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-brain"></i> How it works:</h3>
+             <ul style="margin-left: 1.5rem;">
+                <li>At first, traffic can burst at the PIR, consuming tokens quickly.</li>
+                <li>After the burst is exhausted, packets are shaped according to the CIR.</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="far fa-file-alt"></i> Traffic Contract (TCA):</h3>
+            <p>The Traffic Conditioning Agreement effectively enforced is:</p>
+             \[ TCA(A, B, P) \]
+            <p>Where:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>\(A\) = Average Rate = CIR</li>
+                <li>\(B\) = Burst Length (related to CBS/PBS)</li>
+                <li>\(P\) = Peak Rate = PIR</li>
+            </ul>
+             <p style="margin-left: 1.5rem;">➡️ This marker <strong>can enforce a peak rate</strong> of traffic ≤ PIR.</p>
+
+             <h3 style="margin-top: 1.5rem;"><i class="fas fa-chart-area"></i> Traffic Envelope Graph:</h3>
+             <ul style="margin-left: 1.5rem;">
+                 <li>X-axis: Time (\(t\))</li>
+                 <li>Y-axis: Cumulative Traffic</li>
+             </ul>
+             <p style="margin-left: 1.5rem;"><strong>Graph Shape:</strong></p>
+              <ul style="margin-left: 3rem; list-style-type: square;">
+                 <li>A steep initial rise (at PIR)</li>
+                 <li>Followed by a more gradual slope (at CIR)</li>
+             </ul>
+             <p style="margin-left: 1.5rem;">This shows that short bursts are allowed, but over time the average traffic rate is limited.</p>
+
+        </section>
+
+        <section class="trtcm-color-aware-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-puzzle-piece"></i> Color-Aware Mode (TRTCM)</h2>
+            <p>In Color-Aware Mode, TRTCM evaluates packets based on their existing color and the state of two token buckets: Committed (C) and Peak (P).</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-box-open"></i> Arrival of a Packet of Length \(B\) at Time \(t\)</h3>
+            <p>We determine the packet color based on its previous color and the state of the token buckets for:</p>
+             <ul style="margin-left: 1.5rem;">
+                <li>Committed Information Rate (CIR) with bucket C (tokens \(T_c(t)\))</li>
+                <li>Peak Information Rate (PIR) with bucket P (tokens \(T_p(t)\))</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-sync-alt"></i> Decision Logic:</h3>
+            <ul style="margin-left: 1.5rem; list-style: none; padding-left: 0;">
+                <li style="margin-bottom: 1rem; border-left: 3px solid #dc3545; padding-left: 1rem;">
+                    <strong>If input packet is RED or \(T_p(t) < B\):</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                       <li>➤ Output packet is <strong>RED</strong> <i class="fas fa-circle" style="color: #dc3545;"></i></li>
+                    </ul>
+                </li>
+                <li style="margin-bottom: 1rem; border-left: 3px solid #ffc107; padding-left: 1rem;">
+                   <strong>Else if input packet is YELLOW or \(T_c(t) < B\):</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                        <li>➤ Output packet is <strong>YELLOW</strong> <i class="fas fa-circle" style="color: #ffc107;"></i></li>
+                        <li>➤ Update:
+                            <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem; font-family: monospace;">
+                                 <li>\(T_p(t) = T_p(t) - B\)</li>
+                            </ul>
+                         </li>
+                    </ul>
+                </li>
+                 <li style="border-left: 3px solid #28a745; padding-left: 1rem;">
+                    <strong>Else (packet is GREEN and has enough tokens in both buckets):</strong>
+                     <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem;">
+                         <li>➤ Output packet is <strong>GREEN</strong> <i class="fas fa-circle" style="color: #28a745;"></i></li>
+                         <li>➤ Update:
+                            <ul style="margin-left: 1.5rem; list-style-type: none; padding-left: 0; margin-top: 0.25rem; font-family: monospace;">
+                                 <li>\(T_p(t) = T_p(t) - B\)</li>
+                                 <li>\(T_c(t) = T_c(t) - B\)</li>
+                            </ul>
+                         </li>
+                    </ul>
+                 </li>
+            </ul>
+
+            <div class="key-point" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                <i class="fas fa-check-double" style="color: #6c757d;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #343a40;">✅ Summary:</h4>
+                     <ul style="padding-left: 1.5rem; margin: 0;">
+                         <li>Color-aware mode respects previously assigned color status.</li>
+                         <li>It attempts to preserve color where possible but can downgrade based on token availability.</li>
+                         <li>TRTCM applies hierarchical token bucket logic to enforce peak and average rates.</li>
+                     </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset(); 
+        });
+      });
+    </script>
+</body>
+</html> 

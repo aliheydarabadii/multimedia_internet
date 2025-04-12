@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Level Agreements - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 250px;
+            height: 100vh;
+            background: #2c3e50;
+            color: white;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .nav-links li {
+            margin: 0.5rem 0;
+        }
+
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-links li.active > a {
+            background: #42b883;
+            color: white;
+        }
+
+        .submenu {
+            list-style: none;
+            padding-left: 2.5rem;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .submenu a {
+            padding: 0.5rem 1rem;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h2 i {
+            color: #42b883;
+        }
+
+        .intro-box {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border: 1px solid #e9ecef;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #42b883;
+        }
+
+        .info-card h3 {
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-card h3 i {
+            color: #42b883;
+        }
+
+        .bandwidth-list {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .bandwidth-list li {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            margin: 0.5rem 0;
+        }
+
+        .app-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .bandwidth {
+            color: #42b883;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .note {
+            color: #6c757d;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .key-point {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+        }
+
+        .key-point i {
+            color: #42b883;
+            margin-top: 0.2rem;
+        }
+
+        .conclusion-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #fff9db;
+            border-radius: 8px;
+            border-left: 4px solid #f1c40f;
+        }
+
+        .conclusion-box i {
+            color: #f1c40f;
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bandwidth-list li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li>
+                <a href="../index.html"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a>
+            </li>
+            <li>
+                <a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a>
+            </li>
+            <li>
+                <a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a>
+            </li>
+            <li>
+                <a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a>
+            </li>
+            <li>
+                <a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a>
+            </li>
+            <li>
+                <a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a>
+            </li>
+            <li>
+                <a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a>
+            </li>
+            <li>
+                <a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a>
+            </li>
+            <li>
+                <a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a>
+            </li>
+            <li>
+                <a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a>
+            </li>
+            <li>
+                <a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a>
+            </li>
+            <li>
+                <a href="../index.html#development"><i class="fas fa-code"></i> Development</a>
+            </li>
+            <li>
+                <a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-network-wired"></i> Efficient Link Sharing & QoS Guarantees</h2>
+            
+            <div class="intro-box">
+                <p>In modern IP networks, multiple types of applications—such as voice, video, and data—must coexist and share the same links. The goal of link sharing is twofold: to maximize efficiency and to guarantee Quality of Service (QoS) for each application type.</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3><i class="fas fa-video"></i> Media-Oriented Applications</h3>
+                    <p>Media-oriented applications (like video calls or live event streaming) often have strict bandwidth needs. For example:</p>
+                    <ul class="bandwidth-list">
+                        <li>
+                            <span class="app-name">Telephony:</span>
+                            <span class="bandwidth">~100 Kbit/s</span>
+                        </li>
+                        <li>
+                            <span class="app-name">High-quality live video:</span>
+                            <span class="bandwidth">>10 Mbit/s</span>
+                            <span class="note">(depending on codec used)</span>
+                        </li>
+                    </ul>
+                    <div class="key-point">
+                        <i class="fas fa-check-circle"></i>
+                        <p>These applications benefit from clearly defined resource allocation to ensure smooth performance.</p>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-database"></i> Data Applications</h3>
+                    <p>In contrast, data applications (like file transfers or cloud storage) are bandwidth-hungry. They attempt to consume as much bandwidth as available, which can potentially affect the QoS of other services if not properly managed.</p>
+                </div>
+            </div>
+
+            <div class="conclusion-box">
+                <i class="fas fa-balance-scale"></i>
+                <p>To ensure a balanced experience, modern networks must carefully manage how links are shared—respecting the critical bandwidth needs of delay-sensitive apps while optimizing for the aggressive nature of data applications.</p>
+            </div>
+        </div>
+
+        <section class="new-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-infinity"></i> The Infinite Bandwidth Myth & Resource Management</h2>
+            <div class="intro-box">
+                <p>At first glance, high-capacity optical fiber networks give the impression of limitless bandwidth. In theory, this should eliminate the need for managing how links are shared. However, real-world experience shows that even with such advanced infrastructure, network bottlenecks still occur.</p>
+            </div>
+            <p>The real challenge is not the raw bandwidth, but how it's allocated and shared. Poor resource management can lead to congestion, poor Quality of Service (QoS), and inefficient link usage—even on powerful networks.</p>
+            <p>That's why Part 1 of this course emphasizes the importance of resource management. It sets the stage for understanding how networks operate and serve different types of applications under constraints.</p>
+            <div class="conclusion-box" style="margin-top: 1.5rem;">
+                <i class="fas fa-arrow-circle-right"></i>
+                <p><strong>Up next (Slide 12):</strong> We begin exploring applications from the network's perspective, to better understand what demands are placed on resources.</p>
+            </div>
+        </section>
+
+        <section class="customer-qos-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-users"></i> Understanding QoS from the Customer–Provider Perspective</h2>
+            <p>This section explores how Quality of Service (QoS) is tied to the relationship between users and network providers in a multimedia transport network.</p>
+            
+            <p>There are two main customer types:</p>
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1rem;">
+                    <span style="font-size: 1.5rem;">🧍</span>
+                    <div>
+                        <strong>Retail Customers</strong> typically use best-effort Internet services. That means there's no guaranteed bandwidth, delay, or delivery quality. It's a "we'll do our best" scenario.
+                    </div>
+                </li>
+                <li style="display: flex; align-items: flex-start; gap: 1rem;">
+                    <span style="font-size: 1.5rem;">🧑‍💼</span>
+                    <div>
+                        <strong>Business Customers</strong>, however, can negotiate Service Level Agreements (SLAs). This allows them to request specific performance guarantees for their applications (e.g., low-latency video conferencing, uninterrupted streaming, etc.).
+                    </div>
+                </li>
+            </ul>
+            
+            <p>This distinction is important when designing or analyzing network services, especially for applications that require consistent quality, such as voice or video streaming.</p>
+        </section>
+
+        <section class="olympic-services-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-medal"></i> Olympic Services: A Real-World SLA Model for QoS</h2>
+            <p>In the world of Quality of Service (QoS), Service Level Agreements (SLAs) play a vital role in setting performance expectations. A simple and widely adopted model is known as Olympic Services, which categorizes service guarantees into Gold, Silver, and Bronze tiers.</p>
+
+            <p>Each tier defines:</p>
+            <ul style="margin-left: 2rem;">
+                <li><strong>d:</strong> Maximum allowable delay</li>
+                <li><strong>p:</strong> The probability of violating that delay</li>
+            </ul>
+
+            <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0;">
+                <thead>
+                    <tr style="background: #e9ecef;">
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Tier</th>
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Max Delay</th>
+                        <th style="padding: 0.75rem; text-align: left; border: 1px solid #dee2e6;">Violation Probability</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">Gold</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">90 ms</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">0.001 (0.1%)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">Silver</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">120 ms</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">0.001 (0.1%)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">Bronze</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">250 ms</td>
+                        <td style="padding: 0.75rem; border: 1px solid #dee2e6;">0.001 (0.1%)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>This model ensures that critical applications (e.g., voice or video) can select a suitable service level based on delay sensitivity, while maintaining fairness across the network.</p>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1;">
+                <i class="fas fa-key" style="color: #6f42c1;"></i>
+                <p><strong>Key Formula:</strong> An SLA is expressed as \(SLA = (d, p)\), meaning a delay bound with an acceptable violation probability.</p>
+            </div>
+        </section>
+
+        <section class="delay-distribution-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-wave-square"></i> Understanding Delay Distribution in QoS</h2>
+            <p>To ensure Quality of Service (QoS), network delay must be modeled as a random variable. This means that each packet's delay is not fixed, but varies depending on traffic and network conditions.</p>
+
+            <p>A Service Level Agreement (SLA) sets a delay threshold \(d\) and an acceptable violation probability \(p\). Formally, this is expressed as:</p>
+            \[ P(D > d) = \int_{d}^{\infty} f_D(t) dt \le p \]
+
+            <p>Where:</p>
+            <ul style="margin-left: 2rem;">
+                <li>\(f_D(t)\) is the probability density function of the delay</li>
+                <li>\(E[D]\) is the average (expected) delay</li>
+            </ul>
+            
+            <p><em>The shaded red area under the curve represents the probability of delay exceeding the threshold.</em></p>
+
+            <p>This concept helps ensure that services—especially those needing real-time communication—can function reliably within specified delay constraints.</p>
+
+            <div class="key-point" style="background: #e6f7ff; border-left: 4px solid #17a2b8;">
+                <i class="fas fa-lightbulb" style="color: #17a2b8;"></i>
+                <p><strong>Key Insight:</strong> QoS is not just about averages. It's about how often the delay exceeds a certain bound—this is what users notice.</p>
+            </div>
+        </section>
+
+        <section class="measuring-sla-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-ruler-combined"></i> Measuring SLAs: Client vs. Telco Perspective</h2>
+            <p>One of the most important aspects of a Service Level Agreement (SLA) is not just defining it, but also measuring it accurately.</p>
+            
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;"><i class="fas fa-check-circle" style="color: #28a745;"></i> The Client must be able to measure the actual service received to verify that the SLA terms are met.</li>
+                <li style="display: flex; align-items: flex-start; gap: 0.5rem;"><i class="fas fa-check-circle" style="color: #28a745; margin-top: 0.2rem;"></i> The Contract must:
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Clearly define the SLA metrics (e.g., delay, packet loss)</li>
+                        <li>Specify how the metrics are measured</li>
+                        <li>Include the penalties or compensations if the agreed thresholds are violated</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <p style="margin-top: 1.5rem;">This introduces a practical challenge:</p>
+            <div class="key-point" style="background: #f8d7da; border-left: 4px solid #dc3545;">
+                <i class="fas fa-question-circle" style="color: #dc3545;"></i>
+                <p><strong>Who measures the performance — the client or the provider?</strong></p>
+            </div>
+
+            <p style="margin-top: 1.5rem;">This is where Client vs. Telco dynamics come into play:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>Clients need independent monitoring tools to avoid relying solely on the provider's metrics.</li>
+                <li>Telcos (network providers) may offer built-in metrics but could have a conflict of interest.</li>
+            </ul>
+
+            <div class="conclusion-box" style="background: #d1ecf1; border-left: 4px solid #0c5460; margin-top: 1.5rem;">
+                <i class="fas fa-lightbulb" style="color: #0c5460;"></i>
+                <p><strong>Best practice:</strong> Use neutral, auditable measurement systems and clarify the measurement method in the SLA from the start.</p>
+            </div>
+        </section>
+
+        <section class="telco-proposal-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-satellite-dish"></i> Measuring SLA Delay: A Proposal from the Telco to the Client</h2>
+            <p>To verify that the agreed Service Level Agreement (SLA) is being respected, network providers (telcos) may suggest a standardized measurement process.</p>
+
+            <h3 style="margin-top: 1.5rem;">🔧 Telco's Step-by-Step Proposal:</h3>
+            <ol style="margin-left: 1.5rem;">
+                <li>Start with an SLA defined by a delay threshold \(d\) and an acceptable violation probability \(p\).</li>
+                <li>Send a test packet every \(\Delta t\) seconds.</li>
+                <li>Measure delay \(D_i\) for each packet \(i\) — this is the time it takes for the packet to travel from sender to receiver.</li>
+                <li>At the end of the observation period, collect the delays of all \(N\) packets.</li>
+                <li>Compute the average delay using the formula:
+                    \[ \text{Average Delay} = \frac{1}{N} \sum_{i=1}^{N} D_i \]
+                    This gives the mean delay across all test packets.
+                </li>
+                <li>Compare the result to the SLA:
+                    <ul style="margin-left: 1.5rem; margin-top: 0.5rem; list-style-type: square;">
+                        <li>If the average delay exceeds the threshold \(d\), then the SLA has been violated.</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <section class="dispute-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-balance-scale"></i> SLA Violation Dispute: When Clients Push Back</h2>
+            <p>Sometimes, clients may challenge the way SLA (Service Level Agreement) violations are defined and measured. In response, the telco proposes a more flexible approach to reduce the chance of false SLA violation claims.</p>
+
+            <h3 style="margin-top: 1.5rem;">📑 Updated Proposal from the Telco:</h3>
+            <p>Keeping steps 1–4 from the previous proposal, the new SLA calculation includes two changes:</p>
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                <li><strong>Trim the top 10% of highest delay samples:</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>These are considered outliers that may not reflect typical performance.</li>
+                        <li>Helps avoid penalizing providers for rare spikes.</li>
+                    </ul>
+                </li>
+                <li style="margin-top: 0.75rem;"><strong>Cancel delay samples taken during known congestion events:</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>If a delay is recorded during a moment of network congestion (e.g., router overload), that data point is excluded.</li>
+                        <li>This avoids attributing blame unfairly when the network is temporarily overwhelmed.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="key-point" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1.5rem;">
+                <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Criticism:</h4>
+                    <ul style="padding-left: 1.5rem; margin: 0;">
+                        <li>These steps make it harder to claim that the SLA has been legally violated.</li>
+                        <li>While they protect the provider, they can weaken client protections if not clearly agreed upon.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="better-method-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-check-circle" style="color: #28a745;"></i> A Better Way to Measure SLA Violations</h2>
+            <p>Instead of calculating the average delay or removing outliers, a more robust and fair method for SLA monitoring focuses on statistical delay thresholds.</p>
+
+            <h3 style="margin-top: 1.5rem;">📏 Refined Method:</h3>
+            <ol style="margin-left: 1.5rem;">
+                <li>Keep steps 1–4 from the basic SLA measurement procedure (e.g., sending test packets, collecting delay data).</li>
+                <li>Define \(N^*\) as the number of packets whose delay exceeds the allowed threshold \(d\).</li>
+                <li>Calculate the fraction of violations:
+                    \[ \frac{N^*}{N} \]
+                    where \(N\) is the total number of test packets sent.
+                </li>
+                <li>Compare this ratio to the agreed SLA probability \(p\).</li>
+            </ol>
+            
+            <p style="margin-top: 1rem;">🧠 If:</p>
+            \[ \frac{N^*}{N} > p \]
+            <p>then the SLA has been violated.</p>
+
+            <h3 style="margin-top: 2rem;">🎯 Why is this better?</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>Focuses on how often delays exceed the limit, not just the average.</li>
+                <li>Aligns perfectly with statistical SLAs that define acceptable levels of performance violations.</li>
+                <li>Prevents both client and provider from hiding behind averages or rare spikes.</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          // Correct function call after startup
+          MathJax.typeset(); 
+        });
+      });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admission Control & SLA Guarantee - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script
+    id="MathJax-script"
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
+  ></script>
+    <style>
+        /* Basic styles - copy from previous pages */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        h3 { margin-top: 2rem; margin-bottom: 1rem; color: #34495e; }
+        h4 { margin-top: 1.5rem; margin-bottom: 0.5rem; color: #555; }
+        p { margin-bottom: 1rem; }
+        ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .warning-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107; }
+        .warning-box i { color: #ffc107; margin-top: 0.2rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li class="active"><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-check-circle"></i> Guaranteeing SLA with Admission Control</h2>
+
+            <section>
+                <h3>🎯 Goal:</h3>
+                <p>To guarantee SLA defined as:
+                    \[ \text{SLA} = (d, \bar{p}) \]
+                    Where:</p>
+                <ul>
+                    <li>\( d \) = delay threshold</li>
+                    <li>\( \bar{p} \) = max acceptable probability that delay exceeds \( d \)</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>🧠 Conceptual Setup:</h3>
+                <p>You have:</p>
+                <ul>
+                    <li>A FIFO scheduler handling incoming packets.</li>
+                    <li>A Connection Admission Controller (CAC) deciding how many connections \( N \) can be accepted.</li>
+                    <li>Each connection injects traffic into the FIFO queue.</li>
+                </ul>
+                <p>Let \( E(D) \) be the average delay as a function of the number of connections \( N \).</p>
+            </section>
+
+            <section>
+                <h3>📈 Graph Insight:</h3>
+                <p>Two graphs show how delay behaves:</p>
+                <h4>1. Delay vs. N (left graph):</h4>
+                <ul>
+                    <li>As the number of connections \( N \) increases, the expected delay \( E(D) \) increases.</li>
+                    <li>Delay may stay within SLA initially, but grows quickly as \( N \) increases.</li>
+                </ul>
+                <h4>2. Probability that delay > d (right graph):</h4>
+                <ul>
+                    <li>\( P(D > d) \) also increases with \( N \).</li>
+                    <li>At some point, it crosses the SLA threshold \( \bar{p} \), violating the SLA.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>✅ Key Decision Point: N_max</h3>
+                <ul>
+                    <li>\( N_{max} \) is the maximum number of connections that can be accepted while still satisfying the SLA.</li>
+                    <li>Admission control uses this rule:</li>
+                </ul>
+                \[
+                \begin{cases}
+                \text{If } N \le N_{max} & \Rightarrow \text{SLA is fulfilled} \\
+                \text{If } N > N_{max} & \Rightarrow \text{SLA is violated}
+                \end{cases}
+                \]
+            </section>
+
+            <section>
+                <h3>🧾 Recipe for Admission Control:</h3>
+                <blockquote>
+                    <p><i>"How many simultaneous connections can I accept without violating SLA?"</i></p>
+                </blockquote>
+                <ul>
+                    <li>Evaluate performance metric (e.g., delay distribution)</li>
+                    <li>Compute \( N_{max} \) such that:</li>
+                </ul>
+                \[ P(D > d) \le \bar{p} \]
+                <ul>
+                    <li>Block any new connection if it would cause \( N > N_{max} \).</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📊 CAC Decision Algorithm (Flowchart Style)</h2>
+                <h4>🔁 Step-by-step:</h4>
+                <pre style="background: #f8f9fa; border: 1px solid #e9ecef; padding: 1rem; border-radius: 4px; line-height: 1.5;">
+Connection Request Incoming
+  ↓
+Check the Number of Active Connections (N)
+  ↓
+Is N < N_max?
+  ├─ YES → ✅ Accept Connection
+  └─ NO  → ❌ Reject Connection
+                </pre>
+
+                <h4 style="margin-top: 1.5rem;">🧠 Key Concepts Highlighted:</h4>
+                <ul>
+                    <li>
+                        \( N_{\text{max}} \) comes from the previous slide, which is calculated based on SLA constraints:
+                      </li>
+                      <div>
+                        \[ \text{SLA} = (d, \bar{p}) \Rightarrow \text{Max Delay, Max Violation Probability} \]
+                      </div>
+                    <li>This is a threshold-based CAC, the simplest form of admission control.</li>
+                    <li><strong>Why it's effective:</strong>
+                        <ul>
+                            <li>It's fast.</li>
+                            <li>It avoids complex real-time computations.</li>
+                            <li>Ensures that delay & SLA constraints are not violated.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>📘 Admission Control in a FIFO Scheduler</h2>
+                <h4>1. FIFO Scheduling Context:</h4>
+                <ul>
+                    <li>Packets are served in the order they arrive.</li>
+                    <li>The system has a single queue for all traffic.</li>
+                </ul>
+
+                <h4>2. SLA Constraint:</h4>
+                <p>Defined as \(\text{SLA}(d, p)\) where:</p>
+                <ul>
+                    <li>\(d\) = maximum delay threshold</li>
+                    <li>\(p\) = acceptable probability that the delay is exceeded (often denoted \(\bar{p}\) in previous sections)</li>
+                </ul>
+
+                <h4>3. Main Question:</h4>
+                <blockquote>
+                    <p><i>"How many connections can I accept while guaranteeing the SLA?"</i></p>
+                </blockquote>
+
+                <h4>📉 Admission Region vs. Rejection Region (Graphical View):</h4>
+                <ul>
+                    <li>A graph shows the probability \(P(D > d)\) (that delay exceeds \(d\)) as a function of the number of connections \(N\).</li>
+                    <li>As \(N\) increases, the delay violation probability also increases.</li>
+                    <li>\(N_{max}\) is the critical point where the SLA is barely fulfilled.</li>
+                </ul>
+
+                <h5>✅ Acceptance Region:</h5>
+                <p>If \(N \le N_{max}\), SLA is respected → Accept new connection</p>
+                <h5>❌ Rejection Region:</h5>
+                <p>If \(N > N_{max}\), SLA is violated → Reject new connection</p>
+
+                <h4>✅ Summary Statement:</h4>
+                <p>Scheduling and CAC together decide how many connections can be safely admitted to a system while respecting QoS guarantees.</p>
+            </section>
+
+            <section>
+                <h2>📘 Admission Control for Multiple Classes</h2>
+                <h4>🎯 Goal:</h4>
+                <p>Determine how many connections from each class (Class 1 and Class 2) can be simultaneously accepted without violating their respective SLAs.</p>
+
+                <h4>✅ Definitions:</h4>
+                <ul>
+                    <li><strong>SLA₁(\(\mathbf{d_1, p_1}\)):</strong> Probability that delay \( D_1 > d_1 \) is less than \( p_1 \)</li>
+                    <li><strong>SLA₂(\(\mathbf{d_2, p_2}\)):</strong> Probability that delay \( D_2 > d_2 \) is less than \( p_2 \)</li>
+                </ul>
+                <p>These constraints must hold simultaneously:</p>
+                \[
+                \begin{cases}
+                P(D_1 > d_1) \le p_1 \\
+                P(D_2 > d_2) \le p_2
+                \end{cases}
+                \]
+
+                <h4>🟩 Acceptance vs. Rejection Region (Graph Explanation):</h4>
+                <ul>
+                    <li>Imagine a graph where:</li>
+                    <ul>
+                        <li><strong>X-axis:</strong> Number of Class 1 connections \( N_1 \)</li>
+                        <li><strong>Y-axis:</strong> Number of Class 2 connections \( N_2 \)</li>
+                    </ul>
+                    <li>The <strong>Green area</strong> represents combinations of \( (N_1, N_2) \) where both SLA constraints are satisfied → Accept new connections</li>
+                    <li>The <strong>Red area</strong> represents combinations where one or both SLAs are violated → Reject new connections</li>
+                </ul>
+
+                <h4>🔄 Examples of Movement:</h4>
+                <ul>
+                    <li><strong>A → A′:</strong> A new Class 1 connection is requested starting from point A.</li>
+                    <li>✅ If A′ is still inside the green region → Accept</li>
+                    <li><strong>B → B′:</strong> A new Class 2 connection is requested starting from point B.</li>
+                    <li>✅ If B′ is still inside the green region → Accept</li>
+                    <li><strong>B → B″:</strong> A new Class 1 connection is requested starting from point B.</li>
+                    <li>❌ If B″ crosses into the red region → Reject</li>
+                </ul>
+
+                <h4>✅ Summary:</h4>
+                <p>CAC in multi-class systems involves ensuring all SLA constraints are met simultaneously, creating a feasibility region. Any new connection request must not push the system state outside this region.</p>
+            </section>
+
+            <section>
+                <h2>🔁 Extension to More Classes (Example: 3 Classes)</h2>
+                <p>Here, the system handles three service classes (1, 2, and 3), each with its own SLA:</p>
+                \[
+                \begin{cases}
+                P(D_1 > d_1) \le p_1 \\
+                P(D_2 > d_2) \le p_2 \\
+                P(D_3 > d_3) \le p_3
+                \end{cases}
+                \]
+                <p>These form 3 simultaneous inequality constraints.</p>
+
+                <h4>📊 Graph Explanation:</h4>
+                <p>The concept extends to 3D:</p>
+                <ul>
+                    <li><strong>Axes:</strong>
+                        <ul>
+                            <li>\( N_1 \): Number of active connections for Class 1</li>
+                            <li>\( N_2 \): Class 2</li>
+                            <li>\( N_3 \): Class 3</li>
+                        </ul>
+                    </li>
+                    <li><strong>Acceptance Region (inner solid volume):</strong>
+                        ✅ Represents combinations \( (N_1, N_2, N_3) \) where all three SLA constraints are satisfied.
+                    </li>
+                    <li><strong>Rejection Region (outside surface):</strong>
+                        ❌ Represents combinations where at least one SLA constraint is violated.
+                    </li>
+                </ul>
+
+                <h4>📌 Key Takeaways:</h4>
+                <ul>
+                    <li>The feasibility region gets more complex as the number of classes increases.</li>
+                    <li>The admission decision becomes multidimensional:
+                        Whether to accept a new connection depends on where the new \( (N_1, N_2, N_3) \) point falls in this 3D space.
+                    </li>
+                    <li>The core challenge is to compute the shape of the acceptance region.</li>
+                </ul>
+
+                <h4>✅ Summary:</h4>
+                <p>We can extend the SLA-based CAC method to any number of service classes, but the acceptance region becomes harder to calculate and visualize.</p>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset();
+        });
+      });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elements of QoS: SLA & TCA - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+      // MathJax Configuration (same as sla.html)
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\(', '\)']],
+          displayMath: [['$$', '$$'], ['\[', '\]']],
+          processEscapes: true
+        },
+        svg: {
+          fontCache: 'global'
+        },
+        startup: {
+          typeset: false
+        }
+      };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        /* Basic styles - can be moved to styles.css later */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+        }
+        .sidebar {
+            position: fixed; top: 0; left: 0; width: 250px; height: 100vh;
+            background: #2c3e50; color: white; overflow-y: auto; z-index: 1000;
+        }
+        .sidebar-header { padding: 1.5rem; background: rgba(0, 0, 0, 0.2); }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .nav-links { list-style: none; padding: 0; margin: 1rem 0; }
+        .nav-links li { margin: 0.5rem 0; }
+        .nav-links a {
+            display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8); text-decoration: none; transition: all 0.3s ease;
+        }
+        .nav-links a:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-links li.active > a { background: #42b883; color: white; }
+        .submenu { list-style: none; padding-left: 2.5rem; margin: 0.5rem 0; font-size: 0.9rem; }
+        .submenu a { padding: 0.5rem 1rem; }
+        .main-content { margin-left: 250px; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h2 { color: #2c3e50; font-size: 2rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+        h2 i { color: #42b883; }
+        .key-point { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; border: 1px solid #e9ecef; }
+        .key-point i { color: #42b883; margin-top: 0.2rem; }
+        .conclusion-box { display: flex; align-items: flex-start; gap: 1rem; margin-top: 2rem; padding: 1.5rem; background: #fff9db; border-radius: 8px; border-left: 4px solid #f1c40f; }
+        .conclusion-box i { color: #f1c40f; font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h2>Course Notes</h2>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html"><i class="fas fa-home"></i> Home</a></li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Architecture</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li class="active"><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements (SLA/TCA)</a></li> 
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li> 
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
+            <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
+            <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <h2><i class="fas fa-cogs"></i> Elements of QoS: SLA & TCA</h2>
+            
+            <p>To ensure Quality of Service (QoS) in multimedia networks, two key concepts are used:</p>
+            
+            <ul style="list-style: none; padding-left: 0; margin-top: 1.5rem;">
+                <li style="margin-bottom: 1rem;">
+                    <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;"><i class="fas fa-check-circle" style="color: #28a745;"></i> SLA – Service Level Agreement</h3>
+                    <ul style="margin-left: 2rem;">
+                        <li>It describes the target quality expected for a user.</li>
+                        <li>Think of it as a contract that defines performance guarantees such as latency, packet loss, or availability.</li>
+                    </ul>
+                </li>
+                <li>
+                    <h3 style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;"><i class="fas fa-traffic-light" style="color: #dc3545;"></i> TCA – Traffic Conditioning Agreement</h3>
+                    <ul style="margin-left: 2rem;">
+                        <li>Defines a limit to user traffic.</li>
+                        <li>Ensures that one user's heavy traffic does not affect others.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h3 style="margin-top: 2rem;"><i class="fas fa-users-slash"></i> Independence of SLAs:</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>Each user's SLA must be guaranteed regardless of the behavior of other users.</li>
+                <li>But here's the critical situation:</li>
+                    <ul style="margin-left: 1.5rem; list-style-type: square; margin-top: 0.5rem;">
+                        <li>If one user (e.g., User 2) sends excessive traffic and congests the link, then:</li>
+                           <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                               <li>The delay increases for all users.</li>
+                               <li>Other users' SLAs may be violated.</li>
+                               <li>This undermines the fairness and stability of the network.</li>
+                           </ul>
+                    </ul>
+            </ul>
+
+            <div class="key-point" style="background: #fff3cd; border-left: 4px solid #ffc107; margin-top: 1.5rem;">
+                 <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                 <p><strong>Why it matters:</strong> This slide highlights the importance of traffic limits and enforcing fairness, especially when multiple users share the same router or connection.</p>
+            </div>
+
+        </div>
+
+        <section class="tca-sla-interaction" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-link" style="color: #007bff;"></i> Traffic Conditioning Agreement (TCA) & SLA: How They Work Together</h2>
+            <p>To enforce network quality policies, a Traffic Conditioning Agreement (TCA) works hand in hand with the Service Level Agreement (SLA).</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-traffic-light"></i> What is TCA?</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>TCA defines a traffic profile — essentially an upper limit on how much traffic a user can send.</li>
+                <li>This helps ensure users don't exceed their fair share of network resources.</li>
+            </ul>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-search"></i> How Traffic is Handled:</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>A traffic conditioner checks every user's traffic stream.</li>
+                <li>Traffic is classified as either:
+                    <ul style="margin-left: 1.5rem; list-style: none; padding-left: 0; margin-top: 0.5rem;">
+                        <li style="margin-bottom: 0.5rem;"><strong>"In-profile"</strong> (<i class="fas fa-check-circle" style="color: #28a745;"></i> GREEN): Within the agreed TCA limits.<br/>
+                            <span style="margin-left: 1.5rem;">→ SLA applies.</span>
+                        </li>
+                        <li><strong>"Out-of-profile"</strong> (<i class="fas fa-times-circle" style="color: #dc3545;"></i> RED): Exceeds the TCA.<br/>
+                           <span style="margin-left: 1.5rem;">→ SLA does not apply — the network may delay or even drop these packets.</span>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="key-point" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                <i class="fas fa-key" style="color: #6c757d;"></i>
+                <p><strong>Key Principle:</strong> The SLA applies only to <strong>in-profile</strong> traffic.<br/>
+                   If traffic is out-of-profile (a.k.a. redflow), it can be dropped or deprioritized as the network sees fit.</p>
+            </div>
+        </section>
+
+        <section class="tca-enforcement-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-bullseye"></i> TCA Enforcement: Green vs. Red Traffic</h2>
+            <p>To ensure fairness and prevent congestion, networks enforce the Traffic Conditioning Agreement (TCA) by classifying traffic into two categories:</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem;">
+                <div style="border: 1px solid #e9ecef; border-left: 4px solid #28a745; padding: 1rem; border-radius: 4px; background: #f8f9fa;">
+                    <h3 style="display: flex; align-items: center; gap: 0.5rem; color: #28a745;"><i class="fas fa-check-circle"></i> Green Traffic</h3>
+                    <p style="margin-bottom: 0.5rem;">Also called:</p>
+                    <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+                        <li>In-profile traffic</li>
+                        <li>In-traffic</li>
+                        <li>Conformant</li>
+                    </ul>
+                    <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                        <li>Complies with the TCA limit.</li>
+                        <li><strong>SLA applies</strong> to this traffic — it is protected and prioritized.</li>
+                    </ul>
+                </div>
+                <div style="border: 1px solid #e9ecef; border-left: 4px solid #dc3545; padding: 1rem; border-radius: 4px; background: #f8f9fa;">
+                    <h3 style="display: flex; align-items: center; gap: 0.5rem; color: #dc3545;"><i class="fas fa-times-circle"></i> Red Traffic</h3>
+                    <p style="margin-bottom: 0.5rem;">Also known as:</p>
+                    <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+                        <li>Out-of-profile traffic</li>
+                        <li>Out-traffic</li>
+                        <li>Non-conformant</li>
+                    </ul>
+                    <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                        <li>Exceeds the allowed TCA limit.</li>
+                        <li><strong>SLA does not apply</strong> — it may be delayed, deprioritized, or dropped.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 2rem;"><i class="fas fa-chart-bar"></i> Example: Enforcing a TCA Limit</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li>Suppose the TCA specifies a max of 1 packet per time unit.</li>
+                <li>As packets arrive:
+                    <ul style="margin-left: 1.5rem; list-style-type: square; margin-top: 0.5rem;">
+                        <li>If they respect the limit → marked green.</li>
+                        <li>If they exceed the rate → marked red.</li>
+                    </ul>
+                </li>
+                <li>The regulator (a network function) classifies packets and decides which follow the rules.</li>
+            </ul>
+
+            <div class="conclusion-box" style="background: #d1ecf1; border-left: 4px solid #0c5460; margin-top: 1.5rem;">
+                <i class="fas fa-sync-alt" style="color: #0c5460;"></i>
+                <p><strong>Why it matters:</strong> This system ensures that no single user can abuse the network and impact others. It also ensures only trusted traffic benefits from the guaranteed quality defined in the SLA.</p>
+            </div>
+        </section>
+
+        <section class="redflow-handling-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-traffic-light" style="color: #dc3545;"></i> What Can the Provider Do with Redflow?</h2>
+            <p>Once a packet is classified as Redflow (i.e., out-of-profile traffic), the network provider has a few options for handling it. Each choice has trade-offs in terms of user experience, network efficiency, and fairness.</p>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-hand-paper" style="color: #dc3545;"></i> 1. Policing</h3>
+                <ul style="margin-left: 2rem;">
+                    <li><strong>What it does:</strong> Instantly drops red packets.</li>
+                    <li><strong>Pros:</strong> Easy to implement.</li>
+                    <li><strong>Cons:</strong> Highly disruptive — causes packet loss and poor service. Often leads to user dissatisfaction.</li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-hourglass-half" style="color: #ffc107;"></i> 2. Shaping</h3>
+                <ul style="margin-left: 2rem;">
+                    <li><strong>What it does:</strong> Buffers red packets instead of dropping them immediately. These packets are held back and re-sent later when there is room to treat them as green.</li>
+                    <li><strong>Pros:</strong> Preserves packet delivery without harming others' QoS.</li>
+                    <li><strong>Cons:</strong> Introduces delay and requires buffer space.</li>
+                </ul>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-tag" style="color: #17a2b8;"></i> 3. Marking</h3>
+                <ul style="margin-left: 2rem;">
+                    <li><strong>What it does:</strong> Red packets are sent into the network but marked as red.</li>
+                        <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                            <li>If there's enough capacity → they're forwarded.</li>
+                            <li>If the network is congested → they may be dropped.</li>
+                        </ul>
+                    <li><strong>Pros:</strong> Flexible. Avoids unnecessary drops if the network is underutilized.</li>
+                    <li><strong>Cons:</strong> Still unreliable under heavy load.</li>
+                </ul>
+            </div>
+
+            <div class="conclusion-box" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 2rem;">
+                <i class="fas fa-sync-alt" style="color: #6c757d;"></i>
+                <div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: #343a40;">🔄 Summary</h4>
+                    <p style="margin: 0;">Redflow packets are second-class citizens in the network. Providers must choose between strict enforcement (policing), delayed fairness (shaping), or conditional tolerance (marking).</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="visualization-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-chart-line"></i> Visualizing Traffic Conditioning: Shaping vs Marking</h2>
+            <p>This diagram explains how traffic is regulated under a Traffic Conditioning Agreement (TCA) — specifically one that limits 1 packet per time unit (\(T\)).</p>
+
+            <div style="margin-top: 1.5rem;">
+                <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-arrow-up" style="color: #007bff;"></i> Top Section: Input & Shaping Output</h3>
+                <ul style="margin-left: 1.5rem;">
+                    <li><strong>Input Timeline:</strong> Packets arrive at irregular intervals.</li>
+                    <li>When multiple packets arrive within the same interval, they exceed the rate allowed by the TCA.</li>
+                    <li>Instead of dropping, these extra packets are buffered and sent later — this is called <strong>Shaping</strong>.</li>
+                    <li><strong>Shaping Output:</strong> Packets are released in compliance with the agreed TCA (1 packet per \(T\)), but they are delayed.</li>
+                </ul>
+                <div class="key-point" style="margin-left: 1.5rem; background: #e6f7ff; border-left: 4px solid #17a2b8;">
+                    <i class="fas fa-sync-alt" style="color: #17a2b8;"></i>
+                    <p><strong>Key Point:</strong> Shaping smooths traffic by buffering and rescheduling, ensuring compliance without immediate packet loss.</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                 <h3 style="display: flex; align-items: center; gap: 0.5rem;"><i class="fas fa-arrow-down" style="color: #dc3545;"></i> Bottom Section: Marking Output</h3>
+                 <ul style="margin-left: 1.5rem;">
+                    <li>Here, the same input is passed through a <strong>Marking</strong>-based regulator.</li>
+                    <li>Packets that comply with the TCA are passed as green.</li>
+                    <li>Extra packets that violate the TCA are not buffered. Instead, they are marked as red.</li>
+                    <li>These red packets can later be dropped by the network if needed.</li>
+                 </ul>
+            </div>
+
+            <div class="conclusion-box" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 2rem;">
+                <i class="fas fa-lightbulb" style="color: #6f42c1;"></i>
+                <div>
+                     <h4 style="margin: 0 0 0.5rem 0; color: #5a348a;">📌 Insight:</h4>
+                     <ul style="padding-left: 1.5rem; margin: 0;">
+                         <li>Shaping preserves packets at the cost of delay.</li>
+                         <li>Marking keeps timing tight but risks dropping packets if congestion arises.</li>
+                     </ul>
+                </div>
+             </div>
+        </section>
+
+        <section class="advanced-marking-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-traffic-light" style="color: #ffc107;"></i> Advanced Marking: Adjusting QoS Dynamically</h2>
+            <p>In some cases, Marking can be more sophisticated than simply tagging packets as red (out-of-profile) and leaving them vulnerable to being dropped.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-brain"></i> Smarter Strategy: Adjusting the SLA for Marked Packets</h3>
+            <p>Instead of dropping or delaying red packets outright, a provider may choose to downgrade their quality by assigning them a different SLA (Service Level Agreement) with lower guarantees.</p>
+            <p>This approach provides a more graceful degradation of service under congestion.</p>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-wrench"></i> What Can Be Done with Red Packets?</h3>
+            <ul style="margin-left: 1.5rem;">
+                <li style="margin-bottom: 0.75rem;"><strong>Policing:</strong> Drop red packets immediately — very disruptive.</li>
+                <li style="margin-bottom: 0.75rem;"><strong>Shaping:</strong> Buffer red packets to re-send them later as in-profile (green).</li>
+                <li><strong>Marking (Advanced):</strong>
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>Assign a worse SLA to red packets.</li>
+                        <li>⚠️ Increase the drop probability in case of network congestion.</li>
+                        <li>This allows providers to prioritize traffic flexibly, without hard drops unless necessary.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="key-point" style="background: #eef; border-left: 4px solid #6f42c1; margin-top: 1.5rem;">
+                <i class="fas fa-lightbulb" style="color: #6f42c1;"></i>
+                <p><strong>Key Insight:</strong> Not all marked (red) packets need to be discarded. They can be downgraded, creating a layered quality system that adapts to network load.</p>
+            </div>
+        </section>
+
+        <section class="tca-description-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-chart-pie"></i> How Do We Describe a TCA (Traffic Conditioning Agreement)?</h2>
+            <p>To enforce Quality of Service (QoS), we need a precise way to define traffic behavior. The Traffic Conditioning Agreement (TCA) does exactly that by describing limits on how a user can transmit data.</p>
+
+            <h3 style="margin-top: 1.5rem;">Core TCA Parameters:</h3>
+            <ul style="list-style: none; padding-left: 0;">
+                <li style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <strong style="width: 20px; text-align: center;">P:</strong> 
+                    <div>Peak rate of traffic<br/><span style="font-size: 0.9em; color: #6c757d;">➤ The maximum transmission rate allowed.</span></div>
+                </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.5rem;">
+                    <strong style="width: 20px; text-align: center;">A:</strong> 
+                    <div>Average rate of traffic<br/><span style="font-size: 0.9em; color: #6c757d;">➤ The expected average bandwidth over time.</span></div>
+                </li>
+                 <li style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                    <strong style="width: 20px; text-align: center;">B:</strong> 
+                    <div>Maximum burst length<br/><span style="font-size: 0.9em; color: #6c757d;">➤ How many packets (or bytes) can be sent in a short burst without violating the agreement.</span></div>
+                </li>
+            </ul>
+
+            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Additional Parameters (optional but useful):</h4>
+            <ul style="margin-left: 1.5rem;">
+                <li>Maximum packet length</li>
+                <li>Minimum packet length</li>
+            </ul>
+            <p style="font-size: 0.9em; color: #6c757d; margin-left: 1.5rem;">These help refine traffic management at a more granular level.</p>
+
+            <h3 style="margin-top: 2rem;"><i class="fas fa-link"></i> Integrating SLA and TCA into QoS</h3>
+            <p>QoS is not defined by just one metric — it combines:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li><strong>SLA:</strong> Service Level Agreement, which typically includes:
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                        <li>\(d\): Delay threshold</li>
+                        <li>\(p\): Probability of exceeding the threshold</li>
+                    </ul>
+                </li>
+                 <li style="margin-top: 0.5rem;"><strong>TCA:</strong> Traffic profile based on:
+                    <ul style="margin-left: 1.5rem; list-style-type: circle; margin-top: 0.25rem;">
+                         <li>\(P\), \(A\), \(B\)</li>
+                    </ul>
+                 </li>
+            </ul>
+            <p>Together, the full QoS configuration becomes:</p>
+            <p style="text-align: center; font-size: 1.1em; margin: 1rem 0; font-family: monospace;">
+                QoS = ( (\(d, p\)), (\(P, A, B\)) )
+            </p>
+            <p>This tuple captures both the quality targets and traffic constraints in one unified model.</p>
+
+            <div class="conclusion-box" style="background: #e2e3e5; border-left: 4px solid #6c757d; margin-top: 1.5rem;">
+                 <i class="fas fa-tag" style="color: #6c757d;"></i>
+                 <p><strong>In summary:</strong> TCA ensures traffic conforms, and SLA ensures traffic performs.</p>
+            </div>
+        </section>
+
+        <section class="traffic-conditioner-section" style="margin-top: 2rem; border-top: 1px solid #e9ecef; padding-top: 2rem;">
+            <h2><i class="fas fa-filter"></i> Traffic Conditioner (Regulator) Components</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="margin-bottom: 0.5rem;">Marker Types:</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.75rem;">
+                            <strong>TWO-COLOR MARKERS</strong>
+                            <ul style="margin-left: 1rem; margin-top: 0.25rem;">
+                                <li>→ <i class="fas fa-circle" style="color: #28a745;"></i> GREEN</li>
+                                <li>→ <i class="fas fa-circle" style="color: #dc3545;"></i> RED</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <strong>THREE-COLOR MARKERS</strong>
+                            <ul style="margin-left: 1rem; margin-top: 0.25rem;">
+                                <li>→ <i class="fas fa-circle" style="color: #28a745;"></i> GREEN</li>
+                                <li>→ <i class="fas fa-circle" style="color: #ffc107;"></i> YELLOW</li>
+                                <li>→ <i class="fas fa-circle" style="color: #dc3545;"></i> RED</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 1.5rem;"><i class="fas fa-cogs"></i> Traffic Conditioner Flow:</h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem; border: 1px solid #ccc; padding: 1rem; border-radius: 5px; background: #f8f9fa;">
+                
+                <div style="text-align: center; font-style: italic;">
+                    Packets from different users and/or different applications
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <strong style="background: #e2e3e5; padding: 0.25rem 0.5rem; border-radius: 3px;">INPUT</strong> 
+                    <i class="fas fa-arrow-right"></i>
+                </div>
+                
+                <div style="border: 1px dashed #6c757d; padding: 0.75rem; border-radius: 4px;">
+                    <strong>CLASSIFIER:</strong> Identifies the TCA that applies to the packet
+                </div>
+
+                <div style="text-align: center;"><i class="fas fa-arrow-down"></i></div>
+                
+                <div style="border: 1px dashed #6c757d; padding: 0.75rem; border-radius: 4px;">
+                    <strong>METER:</strong> Knows the TCA and so decides if the packet violates (or not)
+                </div>
+
+                <div style="text-align: center;"><i class="fas fa-arrow-down"></i></div>
+
+                <div style="border: 1px dashed #6c757d; padding: 0.75rem; border-radius: 4px; display: flex; justify-content: space-around;">
+                    <span><strong>POLICER</strong></span>
+                    <span><strong>SHAPER</strong></span>
+                    <span><strong>MARKER</strong></span>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <i class="fas fa-arrow-right"></i>
+                    <strong style="background: #e2e3e5; padding: 0.25rem 0.5rem; border-radius: 3px;">OUTPUT</strong>
+                    <span style="font-style: italic;">(Packets)</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+      // Wait for the DOM to be fully loaded before typesetting
+      document.addEventListener('DOMContentLoaded', function() {
+        MathJax.startup.promise.then(() => {
+          MathJax.typeset(); 
+        });
+      });
+    </script>
+</body>
+</html> 
