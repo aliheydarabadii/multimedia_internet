@@ -30,7 +30,7 @@ body {
 
 .nav-links {
     list-style: none;
-    padding: 20px 0;
+    padding: 0;
 }
 
 .nav-links li {
@@ -93,21 +93,17 @@ body {
 
 header {
     margin-bottom: 40px;
-    text-align: center;
 }
 
 header h1 {
     color: #2c3e50;
     margin-bottom: 10px;
+    font-size: 2.2em;
 }
 
 /* Section styles */
 .section {
     display: none;
-    background-color: white;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 30px;
 }
 
@@ -115,9 +111,124 @@ header h1 {
     display: block;
 }
 
-.section h2 {
+/* Styles for individual subsections within a section */
+.subsection {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    margin-bottom: 30px;
+    border-top: 3px solid transparent;
+}
+
+.subsection h3 {
     color: #2c3e50;
+    margin-top: 0;
     margin-bottom: 20px;
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.subsection h3 i {
+    width: 24px;
+    text-align: center;
+    font-size: 1.1em;
+}
+
+/* Specific Icon Colors for DiffServ page subsections */
+.diffserv-subsection .fa-star { color: #f1c40f; } /* Gold/Yellow */
+.diffserv-subsection .fa-arrows-alt-h { color: #3498db; } /* Blue */
+.diffserv-subsection .fa-tools { color: #e67e22; } /* Orange */
+.diffserv-subsection .fa-bullseye { color: #2ecc71; } /* Green */
+.diffserv-subsection .fa-random { color: #9b59b6; } /* Purple */
+.diffserv-subsection .fa-brain { color: #e74c3c; } /* Red */
+.diffserv-subsection .fa-box { color: #1abc9c; } /* Turquoise */
+.diffserv-subsection .fa-lightbulb { color: #87CEFA; } /* Light Sky Blue */
+.diffserv-subsection .fa-tags { color: #5d6d7e; } /* Slate Gray */
+.diffserv-subsection .fa-table { color: #2980b9; } /* Belize Hole Blue */
+.diffserv-subsection .fa-share-alt { color: #27ae60; } /* Nephritis Green */
+.diffserv-subsection .fa-layer-group { color: #8e44ad; } /* Wisteria Purple */
+.diffserv-subsection .fa-microscope { color: #7f8c8d; } /* Gray */
+.diffserv-subsection .fa-border-all { color: #e67e22; } /* Orange - reusing */
+.diffserv-subsection .fa-search { color: #1abc9c; } /* Turquoise - reusing */
+.diffserv-subsection .fa-map-signs { color: #e67e22; } /* Orange - reusing */
+.diffserv-subsection .fa-compass { color: #34495e; } /* Dark Blue/Gray */
+.diffserv-subsection .fa-network-wired { color: #5d6d7e; } /* Overriding nav color if needed */
+.diffserv-subsection .fa-globe-americas { color: #27ae60; } /* Nephritis Green - reusing */
+.diffserv-subsection .fa-balance-scale { color: #e67e22; } /* Orange - reusing */
+.diffserv-subsection .fa-bolt { color: #f1c40f; } /* Yellow/Gold - reusing */
+.diffserv-subsection .fa-rocket { color: #e74c3c; } /* Red - reusing */
+.diffserv-subsection .fa-diagram-project { color: #9b59b6; } /* Purple - reusing */
+.diffserv-subsection .fa-chart-line { color: #2ecc71; } /* Emerald Green */
+.diffserv-subsection .fa-traffic-light { color: #e67e22; } /* Orange - reusing */
+.diffserv-subsection .fa-chart-bar { color: #3498db; } /* Blue - reusing */
+.diffserv-subsection .fa-ruler-combined { color: #e74c3c; } /* Red - reusing */
+
+/* Adding top border color based on icon */
+.diffserv-subsection:has(.fa-star) { border-top-color: #f1c40f; }
+.diffserv-subsection:has(.fa-arrows-alt-h) { border-top-color: #3498db; }
+.diffserv-subsection:has(.fa-tools) { border-top-color: #e67e22; }
+.diffserv-subsection:has(.fa-bullseye) { border-top-color: #2ecc71; }
+.diffserv-subsection:has(.fa-random) { border-top-color: #9b59b6; }
+.diffserv-subsection:has(.fa-brain) { border-top-color: #e74c3c; }
+.diffserv-subsection:has(.fa-box) { border-top-color: #1abc9c; }
+.diffserv-subsection:has(.fa-lightbulb) { border-top-color: #87CEFA; }
+.diffserv-subsection:has(.fa-tags) { border-top-color: #5d6d7e; }
+.diffserv-subsection:has(.fa-table) { border-top-color: #2980b9; }
+.diffserv-subsection:has(.fa-share-alt) { border-top-color: #27ae60; }
+.diffserv-subsection:has(.fa-layer-group) { border-top-color: #8e44ad; }
+.diffserv-subsection:has(.fa-microscope) { border-top-color: #7f8c8d; }
+.diffserv-subsection:has(.fa-border-all) { border-top-color: #e67e22; }
+.diffserv-subsection:has(.fa-search) { border-top-color: #1abc9c; }
+.diffserv-subsection:has(.fa-map-signs) { border-top-color: #e67e22; }
+.diffserv-subsection:has(.fa-compass) { border-top-color: #34495e; }
+.diffserv-subsection:has(.fa-network-wired) { border-top-color: #5d6d7e; }
+.diffserv-subsection:has(.fa-globe-americas) { border-top-color: #27ae60; }
+.diffserv-subsection:has(.fa-balance-scale) { border-top-color: #e67e22; }
+.diffserv-subsection:has(.fa-bolt) { border-top-color: #f1c40f; }
+.diffserv-subsection:has(.fa-rocket) { border-top-color: #e74c3c; }
+.diffserv-subsection:has(.fa-diagram-project) { border-top-color: #9b59b6; }
+.diffserv-subsection:has(.fa-chart-line) { border-top-color: #2ecc71; }
+.diffserv-subsection:has(.fa-traffic-light) { border-top-color: #e67e22; }
+.diffserv-subsection:has(.fa-chart-bar) { border-top-color: #3498db; }
+.diffserv-subsection:has(.fa-ruler-combined) { border-top-color: #e74c3c; }
+
+/* Specific style for the MPLS summary subsection */
+.subsection#mpls-summary {
+    background-color: #e7f5fd; /* Light blue background */
+    border-top-color: #87CEFA; /* Ensure border matches icon */
+}
+
+.subsection#mpls-summary h3 {
+    color: #0b77c2; /* Slightly darker blue for heading */
+}
+
+.subsection#mpls-summary p {
+    color: #34495e; /* Keep text color readable */
+}
+
+.subsection p,
+.subsection ul,
+.subsection ol {
+    color: #34495e;
+    line-height: 1.7;
+}
+
+.subsection ul,
+.subsection ol {
+    padding-left: 30px;
+    margin-top: 15px;
+}
+
+.subsection li {
+    margin-bottom: 10px;
+}
+
+.subsection strong {
+    color: #2c3e50;
+    font-weight: 600;
 }
 
 /* Error message styles */
@@ -709,4 +820,128 @@ header h1 {
     .comparison {
         flex-direction: column;
     }
+}
+
+/* Styling for H4 within subsections */
+.subsection h4 {
+    color: #16a085; /* Teal color for H4 */
+    margin-top: 25px;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.subsection h4 i {
+    font-size: 0.9em; /* Slightly smaller icon for H4 */
+    width: 20px;
+    text-align: center;
+}
+
+/* Specific style for the Key Takeaway quote */
+.subsection#mpls-label-forwarding .quote {
+    border-left-color: #9b59b6; 
+    background-color: #f9f6fc; 
+    margin-top: 15px;
+}
+
+.subsection#mpls-label-forwarding .quote p {
+    color: #5e3370; /* Darker purple text */
+}
+
+/* Specific style for the MPLS Label Table Key Takeaway quote */
+.subsection#mpls-label-tables .quote {
+    border-left-color: #5d6d7e; 
+    background-color: #f4f6f7; 
+    margin-top: 15px;
+}
+
+.subsection#mpls-label-tables .quote p {
+    color: #34495e; /* Matching the text color */
+}
+
+/* Specific style for the MPLS Multicast Takeaway quote */
+.subsection#mpls-multicast .quote {
+    border-left-color: #16a085; 
+    background-color: #e8f6f3; 
+    margin-top: 15px;
+}
+
+.subsection#mpls-multicast .quote p {
+    color: #117864; /* Darker teal/green text */
+}
+
+/* Specific style for the DSCP/PHB "Why It Matters" quote */
+.subsection#dscp-phb .quote {
+    border-left-color: #e74c3c; 
+    background-color: #fdedec; 
+    margin-top: 15px;
+}
+
+.subsection#dscp-phb .quote p {
+    color: #c0392b; /* Darker red text */
+}
+
+/* Specific style for the Traffic Aggregation Takeaway quote */
+.subsection#traffic-aggregation .quote {
+    border-left-color: #e67e22; 
+    background-color: #fef5e7; 
+    margin-top: 15px;
+}
+
+.subsection#traffic-aggregation .quote p {
+    color: #b35c00; /* Darker orange text */
+}
+
+/* Specific style for the Aggregation/Classification Summary quote */
+.subsection#aggregation-classification-details .quote {
+    border-left-color: #2980b9; 
+    background-color: #ebf5fb; 
+    margin-top: 15px;
+}
+
+.subsection#aggregation-classification-details .quote p, /* Apply to p if needed */
+.subsection#aggregation-classification-details .quote ul { /* Apply to ul */
+    color: #2471a3; /* Darker blue text */
+    margin-bottom: 0; /* Adjust spacing if needed */
+}
+.subsection#aggregation-classification-details .quote ul {
+    list-style-position: inside; /* Keep bullets inside */
+    padding-left: 0.5em; /* Reduce list indent */
+}
+
+/* Specific style for the Core Strategy Quote */
+.subsection#core-strategy .quote {
+    border-left-color: #f1c40f; 
+    background-color: #fcf8e3; 
+    margin-top: 10px; /* Reduced margin for tighter spacing */
+    margin-bottom: 15px;
+}
+
+.subsection#core-strategy .quote p {
+    color: #8a6d3b; /* Darker yellow/brown text */
+}
+
+/* Specific style for the Design Logic "Why This Makes Sense" Quote */
+.subsection#design-logic .quote {
+    border-left-color: #1abc9c; 
+    background-color: #e8f8f5; 
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+.subsection#design-logic .quote p {
+    color: #148f77; /* Darker turquoise text */
+}
+
+/* Specific style for the EF PHB Note Quote */
+.subsection#ef-phb .quote {
+    border-left-color: #f39c12; 
+    background-color: #fff9e6; 
+    margin-top: 15px;
+}
+
+.subsection#ef-phb .quote p {
+    color: #c77c00; /* Darker orange/brown text */
 } 

@@ -78,8 +78,11 @@
             <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
             <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
             <li class="active"><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
-            <!-- Add future links here -->
-            <li><a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a></li>
+            <li><a href="qos-summary.html"><i class="fas fa-project-diagram"></i> QoS Summary</a></li>
+            <li><a href="diffserv.html"><i class="fas fa-network-wired"></i> DiffServ Architecture</a></li>
+            <li>
+                <a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a>
+            </li>
             <li><a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a></li>
             <li><a href="../index.html#development"><i class="fas fa-code"></i> Development</a></li>
             <li><a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a></li>
@@ -423,7 +426,7 @@
                 <h4>📉 Why Use a Low-Pass Filter?</h4>
                 <p>RED uses the formula:</p>
                 <div>
-                  \[ Q_{ave}(t) = (1 - w) \cdot Q_{ave}(t - 1) + w \cdot Q(t) \]
+                  \[ Q_{ave}(t) = (0 - w) \cdot Q_{ave}(t - 1) + w \cdot Q(t) \]
                 </div>
                 <p>Where:</p>
                 
@@ -445,6 +448,237 @@
                     <li>Makes <strong>packet-dropping decisions</strong> more stable</li>
                     <li>Reduces packet loss and latency fluctuations due to bursty traffic</li>
                 </ul>
+            </section>
+
+            <section>
+                <h3>🎯 How RED Makes Dropping Decisions: Minth, Maxth & Congestion Modes</h3>
+                <p><strong>RED (Random Early Detection)</strong> manages network congestion <em>before</em> the buffer is full, ensuring smoother traffic flow and fairness among users.</p>
+
+                <hr style="margin: 2rem 0;">
+
+                <h4>📈 The Three Operating Modes</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 1.5rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Region</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Condition</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">🟢 <strong>Normal Mode</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(Q_{ave} < \text{minth}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">No packet is dropped</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">🟡 <strong>Avoidance Mode</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(\text{minth} < Q_{ave} < \text{maxth}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Packet is dropped <strong>with probability</strong> proportional to queue length</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">🔴 <strong>Congestion Mode</strong></td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(Q_{ave} > \text{maxth}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;"><strong>All packets dropped</strong> (Tail Drop behavior)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p>Where:</p>
+                <ul>
+                    <li>\(Q_{ave}\) = average queue size</li>
+                    <li>\(\text{minth}\) = minimum threshold</li>
+                    <li>\(\text{maxth}\) = maximum threshold</li>
+                    <li>Drop probability increases linearly between \(\text{minth}\) and \(\text{maxth}\)</li>
+                </ul>
+
+                <hr style="margin: 2rem 0;">
+
+                <h4>⚖️ Why This Helps</h4>
+                <ul>
+                    <li>🔄 <strong>Prevents Tail Drop:</strong> avoids sudden packet loss when the buffer is full</li>
+                    <li>🚦 <strong>Fair Congestion Signaling:</strong> drops are more fairly distributed across flows</li>
+                    <li>🔍 <strong>Works with TCP:</strong> lets TCP detect congestion early and slow down</li>
+                </ul>
+                <blockquote>
+                    <p>📌 <em>RED doesn't just drop packets— it intelligently decides when and how to drop to keep the network stable.</em></p>
+                </blockquote>
+            </section>
+
+            <section>
+                <h3>🎨 RIO (RED with IN and OUT): Smarter Congestion Management</h3>
+                <p>RIO (RED with In and Out) is an enhanced version of the RED algorithm that treats packets differently based on their color—typically marked by traffic conditioners before entering the queue.</p>
+
+                <h4>🟢🔴 Color-Aware Dropping</h4>
+                <ul>
+                    <li><strong>IN Packets (Green):</strong>
+                        <ul>
+                            <li>✅ Compliant with SLA (Service Level Agreement)</li>
+                            <li>✅ Should be protected and delivered whenever possible</li>
+                        </ul>
+                    </li>
+                    <li><strong>OUT Packets (Red):</strong>
+                        <ul>
+                            <li>❌ Exceed their traffic contract (TCA violation)</li>
+                            <li>❌ Higher risk of being dropped</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>👉 RIO gives higher dropping probability to OUT packets, preserving the quality of service for SLA-compliant flows.</p>
+
+                <h4>💡 Why RIO is a Smart Idea</h4>
+                <ul>
+                    <li>✅ Prioritizes important traffic</li>
+                    <li>✅ Maintains fairness among users (penalizes those exceeding contract)</li>
+                    <li>✅ Avoids penalizing well-behaved applications</li>
+                </ul>
+                <blockquote>
+                    <p><i>"It's better to drop a red (non-compliant) packet than to punish a green (compliant) one."</i></p>
+                </blockquote>
+            </section>
+
+            <section>
+                <h3>📊 How RIO Monitors Buffer Occupancy</h3>
+                <p>RIO AQM (Active Queue Management) monitors <strong>two separate average queue lengths</strong> to treat packets differently based on whether they are IN (conforming) or OUT (non-conforming):</p>
+
+                <h4>🔁 Two Key Metrics:</h4>
+                <ul>
+                    <li><strong>\(Q_{ave,in}\):</strong> Average buffer occupancy of IN (green) packets</li>
+                    <li><strong>\(Q_{ave,out}\):</strong> Average buffer occupancy of <em>all</em> packets (IN + OUT)</li>
+                </ul>
+
+                <h4>🧮 How They're Calculated</h4>
+                <p>For every new packet, RIO updates the averages using EWMA:</p>
+                \[ Q_{ave,in}(t)  =  (1 - W_{in}) \cdot Q_{ave,in}(t-1) + W_{in} \cdot Q_{in}(t) \]
+                \[ Q_{ave,out}(t) =  (1 - W_{out}) \cdot Q_{ave,out}(t-1) + W_{out} \cdot Q(t) \]
+                <p>Where:</p>
+                <ul>
+                    <li>\(W_{in}\) and \(W_{out}\) are smoothing weights (\(0 < W \le 1\))</li>
+                    <li>\(Q_{in}(t)\) = current IN packet queue length</li>
+                    <li>\(Q(t)\) = total buffer occupancy (IN + OUT)</li>
+                </ul>
+
+                <h4>🛡️ Conservative Estimation</h4>
+                <ul>
+                    <li>RIO uses \(Q_{ave,out}\) as a conservative estimate to ensure that non-compliant (OUT) traffic gets dropped first if congestion arises.</li>
+                    <li>This protects compliant flows and helps preserve fairness and performance.</li>
+                </ul>
+                <blockquote>
+                    <p><i>"RIO doesn't just drop packets randomly—it evaluates who's behaving and who's not!"</i></p>
+                </blockquote>
+            </section>
+
+            <section>
+                <h3>⚙️ RIO AQM Parameters: IN vs OUT Traffic</h3>
+                <p>To manage network congestion fairly and efficiently, RIO (RED for In and Out) uses different sets of parameters for compliant (IN) and non-compliant (OUT) packets.</p>
+
+                <h4>🟢 Parameters for IN (Green) Packets</h4>
+                <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Parameter</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(\text{MinTh}_{in}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Minimum threshold for green packets</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(\text{MaxTh}_{in}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Maximum threshold for green packets</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(W_{in}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Weight for averaging IN queue length (smoothing)</td>
+                        </tr>
+                         <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(Q_{ave,in}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Average queue length of green packets</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>🔴 Parameters for OUT (Red) Packets</h4>
+                 <table style="width: 100%; border-collapse: collapse; margin: 1rem 0;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Parameter</th>
+                            <th style="border: 1px solid #ddd; padding: 8px; text-align: left; background-color: #f2f2f2;">Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(\text{MinTh}_{out}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Minimum threshold for red (non-conforming) packets</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(\text{MaxTh}_{out}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Maximum threshold for red packets</td>
+                        </tr>
+                        <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(W_{out}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Smoothing weight for total buffer length</td>
+                        </tr>
+                         <tr>
+                            <td style="border: 1px solid #ddd; padding: 8px;">\(Q_{ave,out}\)</td>
+                            <td style="border: 1px solid #ddd; padding: 8px;">Average queue length including both green and red</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h4>💡 Why Different Sets?</h4>
+                <ul>
+                    <li>IN packets are treated more gently because they respect the SLA and traffic profile.</li>
+                    <li>OUT packets are more likely to be dropped during congestion, based on a more conservative average (using \(Q_{ave,out}\)).</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>📊 RIO Drop Probability Curve</h3>
+                <h4>🎯 What This Graph Shows:</h4>
+                <p>RIO uses two different drop probability curves for:</p>
+                <ul>
+                    <li>🟢 <strong>IN (green) packets</strong> – conforming to the SLA</li>
+                    <li>🔴 <strong>OUT (red) packets</strong> – non-conforming or exceeding the SLA</li>
+                </ul>
+
+                <h4>📈 Graph Explanation:</h4>
+                <p>Imagine a graph with:</p>
+                <ul>
+                    <li><strong>X-Axis:</strong> Average Queue Length (\(Q_{ave}\))</li>
+                    <li><strong>Y-Axis:</strong> Drop Probability (\(P_{drop}\))</li>
+                </ul>
+                <p>There are two linear segments representing the probability increase:</p>
+                <ul>
+                    <li>🔴 <strong>OUT curve rises earlier and more steeply:</strong>
+                        <ul>
+                            <li>Operates between \(\text{MinTh}_{out}\) and \(\text{MaxTh}_{out}\).</li>
+                            <li>Reaches a higher maximum drop probability sooner (more aggressive).</li>
+                        </ul>
+                    </li>
+                    <li>🟢 <strong>IN curve is more forgiving:</strong>
+                        <ul>
+                            <li>Operates between \(\text{MinTh}_{in}\) and \(\text{MaxTh}_{in}\) (typically, \(\text{MinTh}_{in}\) is higher than \(\text{MinTh}_{out}\)).</li>
+                            <li>Lower maximum drop probability or reaches it later.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>Tail drop (100% probability) effectively starts earlier for OUT packets if \(\text{MaxTh}_{out}\) is reached.</p>
+
+                <h4>✅ Why This Matters:</h4>
+                <p>OUT packets are dropped earlier and more frequently to:</p>
+                <ul>
+                    <li>Protect compliant (IN) traffic</li>
+                    <li>Maintain fairness (penalize non-compliant flows)</li>
+                    <li>Avoid congestion and ensure SLA compliance for well-behaved flows</li>
+                </ul>
+                <p>This strategy is compatible with traffic conditioners that color packets based on their compliance with the SLA.</p>
+
+                <h4>🧠 Key Takeaway:</h4>
+                <blockquote>
+                    <p><i>"RIO enforces fairness by preferentially protecting IN packets while punishing OUT packets based on colored queue thresholds."</i></p>
+                </blockquote>
             </section>
 
         </div>

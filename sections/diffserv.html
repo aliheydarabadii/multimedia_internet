@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiffServ Architecture & MPLS - Multimedia Course Notes</title>
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Add any page-specific styles here if needed */
+        /* Removed: .section { display: block; } */
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" id="MathJax-script" async></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\(', '\)']],
+                displayMath: [['$$', '$$'], ['\[', '\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                ready: () => {
+                    console.log('MathJax ready on diffserv page');
+                    MathJax.startup.defaultReady();
+                    if (typeof MathJax !== 'undefined' && MathJax.typeset) {
+                        try {
+                            MathJax.typeset();
+                        } catch(err) {
+                            console.error('MathJax typeset error on diffserv page:', err);
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-book-open"></i> Course Notes</h3>
+        </div>
+        <ul class="nav-links">
+            <li>
+                <a href="../index.html#home"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li>
+                <a href="../index.html#introduction"><i class="fas fa-book"></i> Introduction</a>
+                <ul class="submenu">
+                    <li><a href="../index.html#network-protocol">Network Protocol Arch.</a></li>
+                    <li><a href="../index.html#user-plane">User Plane</a></li>
+                    <li><a href="../index.html#control-plane">Control Plane</a></li>
+                    <li><a href="../index.html#management-plane">Management Plane</a></li>
+                </ul>
+            </li>
+            <li><a href="playback-applications.html"><i class="fas fa-play"></i> Playback Applications</a></li>
+            <li><a href="sla.html"><i class="fas fa-file-contract"></i> Service Level Agreements</a></li>
+            <li><a href="qos-elements.html"><i class="fas fa-cogs"></i> QoS Elements</a></li>
+            <li><a href="traffic-conditioning-components.html"><i class="fas fa-shield-alt"></i> Traffic Conditioning</a></li>
+            <li><a href="packet-routing-qos.html"><i class="fas fa-route"></i> Packet Routing & QoS</a></li>
+            <li><a href="schedulers.html"><i class="fas fa-calendar-alt"></i> Scheduler Types</a></li>
+            <li><a href="admission-control.html"><i class="fas fa-check-circle"></i> Admission Control</a></li>
+            <li><a href="classification.html"><i class="fas fa-sitemap"></i> Classification</a></li>
+            <li><a href="aqm.html"><i class="fas fa-tasks"></i> Active Queue Management</a></li>
+            <li><a href="qos-summary.html"><i class="fas fa-project-diagram"></i> QoS Summary</a></li>
+            <li><a href="diffserv.html" class="active"><i class="fas fa-network-wired"></i> DiffServ Architecture</a></li>
+            <li>
+                <a href="../index.html#media-types"><i class="fas fa-photo-video"></i> Media Types</a>
+            </li>
+            <li>
+                <a href="../index.html#tech"><i class="fas fa-microchip"></i> Technology</a>
+            </li>
+            <li>
+                <a href="../index.html#development"><i class="fas fa-code"></i> Development</a>
+            </li>
+            <li>
+                <a href="../index.html#notes"><i class="fas fa-sticky-note"></i> Notes</a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <header>
+            <h1>IP Differentiated Services (DiffServ) Architecture</h1>
+            <p>Understanding the End-to-End QoS Architecture of DiffServ</p>
+        </header>
+
+        <section id="diffserv-architecture" class="section active">
+            <div class="subsection diffserv-subsection">
+                <h3><i class="fas fa-star"></i> What is DiffServ?</h3>
+                <p>IP Differentiated Services (DiffServ) is a <strong>network architecture model</strong> defined by the IETF to provide <strong>Quality of Service (QoS)</strong> over IP networks. It focuses on <strong>scalable traffic management</strong>, particularly in large and complex networks.</p>
+            </div>
+
+            <div class="subsection diffserv-subsection">
+                <h3><i class="fas fa-arrows-alt-h"></i> End-to-End QoS: Edge-to-Edge Model</h3>
+                <p>DiffServ divides the network into:</p>
+                <ul>
+                    <li><strong>Network A</strong> and <strong>Network B</strong>, each managed independently.</li>
+                    <li>Traffic is treated based on policies <strong>from the source to the destination</strong>, maintaining <strong>edge-to-edge guarantees</strong>.</li>
+                    <li>The entire system works together to ensure <strong>end-to-end QoS</strong> for multimedia and critical applications.</li>
+                </ul>
+            </div>
+
+            <div class="subsection diffserv-subsection">
+                <h3><i class="fas fa-tools"></i> Core Components of DiffServ-Based QoS</h3>
+                <ol>
+                    <li><strong>Service Level Agreements (SLA)</strong> and <strong>Traffic Conditioning Agreements (TCA)</strong><br>Define service guarantees between networks and customers.</li>
+                    <li><strong>Traffic Conditioners</strong><br>Includes:
+                        <ul>
+                            <li><strong>Classifier</strong>: Identifies traffic type.</li>
+                            <li><strong>Meter</strong>: Measures traffic rate.</li>
+                            <li><strong>Policer</strong>: Enforces rate compliance.</li>
+                            <li><strong>Shaper</strong>: Buffers traffic to smooth bursts.</li>
+                            <li><strong>Marker</strong>: Tags packets for priority handling.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Scheduling & Admission Control</strong><br>Determines how and when packets are forwarded.</li>
+                    <li><strong>Active Queue Management (AQM)</strong><br>Manages congestion and avoids packet loss before buffers are full.</li>
+                </ol>
+            </div>
+
+            <div class="subsection diffserv-subsection">
+                <h3><i class="fas fa-bullseye"></i> Goal</h3>
+                <p>To <strong>coordinate different domains</strong> and provide <strong>predictable performance</strong>, particularly for services that require low delay, low jitter, or guaranteed bandwidth — such as video conferencing, voice over IP, and streaming.</p>
+            </div>
+        </section>
+
+        <section id="traffic-engineering-mpls" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-random"></i> The Importance of Fixed Paths in Networks</h3>
+            <p>Guaranteeing <strong>Quality of Service (QoS)</strong> becomes much easier when <strong>packet paths are fixed</strong>.</p>
+            <p>When the path of a connection is known in advance:</p>
+            <ul>
+                <li><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Network resources (like bandwidth) can be allocated along the route.</li>
+                <li><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Predictable performance and minimal congestion can be achieved.</li>
+            </ul>
+        </section>
+
+        <section id="standard-routing-shortcomings" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-brain"></i> Why Standard Routing Falls Short</h3>
+            <p>Typical routing algorithms (like shortest-path or load-balanced routing) <strong>spread packets across multiple paths</strong>, which:</p>
+            <ul>
+                <li>Leads to <strong>unpredictable delivery</strong></li>
+                <li>Increases latency variation (jitter)</li>
+                <li>Makes it harder to provide QoS guarantees</li>
+            </ul>
+        </section>
+
+        <section id="traffic-engineering-solution" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-tools"></i> The Solution: Traffic Engineering</h3>
+            <p><strong>Traffic Engineering</strong> is the technique of:</p>
+            <ul>
+                <li><strong>Fixing a specific path</strong> for a given traffic flow</li>
+                <li><strong>Controlling how traffic enters and traverses the network</strong></li>
+            </ul>
+            <p>This allows for:</p>
+            <ul>
+                <li>Better utilization of network capacity</li>
+                <li>Reduced packet loss</li>
+                <li>Improved reliability for critical flows</li>
+            </ul>
+        </section>
+
+        <section id="mpls-details" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-box"></i> Multiprotocol Label Switching (MPLS)</h3>
+            <p>A powerful method for implementing traffic engineering is <strong>MPLS</strong>:</p>
+            <ul>
+                <li>MPLS routes packets using <strong>labels</strong> rather than IP addresses.</li>
+                <li>Labels define the exact path through the network.</li>
+                <li>It ensures <strong>efficient, fast, and deterministic routing</strong>, ideal for applications requiring QoS.</li>
+            </ul>
+        </section>
+
+        <section id="mpls-summary" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-lightbulb"></i> Summary</h3>
+            <p>By fixing packet paths and applying <strong>Traffic Engineering</strong> through <strong>MPLS</strong>, network administrators can deliver consistent and scalable QoS—even in large, complex networks.</p>
+        </section>
+
+        <section id="mpls-label-forwarding" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-tags"></i> MPLS (Multiprotocol Label Switching): Label-Based Forwarding</h3>
+            
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Key Idea</h4>
+            <p>In <strong>MPLS</strong>, packets are routed through the network using <strong>labels</strong> rather than IP lookups at every hop. This establishes a <strong>Label-Switched Path (LSP)</strong> that all packets of a given <strong>flow (connection)</strong> follow consistently.</p>
+
+            <hr style="margin: 20px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-road" style="color: #3498db;"></i> How It Works</h4>
+            <ol>
+                <li><strong>Connection Setup & First Label</strong><br>
+                    When a flow (e.g., from Router A to Router B) is established, the network assigns an <strong>initial label</strong> to the traffic at the ingress router.<br>
+                    <em>Example: Label <strong>123</strong> is attached to the packets originating from Host A.</em>
+                </li>
+                <li><strong>Label Swapping at Each Hop</strong><br>
+                    <strong>Label Switch Routers (LSRs)</strong> along the path read the incoming label and swap it for a new label that defines the <strong>next hop</strong>.<br>
+                    <em>For instance, Router 1 might swap label 123 for 789, then Router 2 swaps 789 for 456, and so on.</em>
+                </li>
+                <li><strong>Same Path for All Packets</strong><br>
+                    Because each packet in the flow carries the same initial label, the entire flow traverses <strong>the same sequence of labels</strong> (and thus the same physical path) end-to-end.<br>
+                    This <strong>eliminates route variability</strong> seen in conventional IP routing.
+                </li>
+            </ol>
+
+            <hr style="margin: 20px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Benefits of Label-Based Routing</h4>
+            <ul>
+                <li><strong>Predictable QoS</strong>: Ensures deterministic paths, making it easier to reserve bandwidth and guarantee delays.</li>
+                <li><strong>Fast Forwarding</strong>: Labels are shorter to process than IP headers, speeding up packet handling in hardware.</li>
+                <li><strong>Traffic Engineering</strong>: Network operators can carefully control which paths are used, avoiding congestion and optimizing resource usage.</li>
+            </ul>
+            
+            <hr style="margin: 20px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-brain" style="color: #e74c3c;"></i> Key Takeaway</h4>
+            <div class="quote" style="border-left-color: #9b59b6; background-color: #f9f6fc;"> <!-- Using quote style for emphasis -->
+                 <p><strong>All packets of the same MPLS connection share the same route</strong> because they share a sequence of label swaps, resulting in <strong>consistent, manageable paths</strong> across the network.</p>
+            </div>
+        </section>
+
+        <section id="mpls-label-tables" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-table"></i> MPLS Label Tables: How Label Swapping Works</h3>
+            <p>When an MPLS connection (Label Switched Path, or LSP) is established, each router along the path builds or updates an MPLS forwarding table. This table instructs the router on how to swap incoming labels for outgoing labels and which interface to use next.</p>
+
+            <h4><i class="fas fa-wrench" style="color: #7f8c8d;"></i> Anatomy of a Label Table</h4>
+            <p>Each entry typically includes:</p>
+            <ul>
+                <li><strong>In-Link / In-Label</strong>: The interface and label on which packets arrive.</li>
+                <li><strong>Out-Link / Out-Label</strong>: The interface to send packets out on, and the new label the router should attach for the next hop.</li>
+            </ul>
+            <p><em>Example:</em></p>
+            <div class="table-container" style="margin-top: 10px;">
+                 <table class="comparison-table" style="background: #fdfefe; font-size: 0.95em;">
+                     <thead>
+                         <tr>
+                             <th>In-Link</th>
+                             <th>In-Label</th>
+                             <th>Out-Link</th>
+                             <th>Out-Label</th>
+                         </tr>
+                     </thead>
+                     <tbody>
+                         <tr>
+                             <td>(1)</td>
+                             <td>473</td>
+                             <td>(1,2)</td>
+                             <td>732</td>
+                         </tr>
+                         <tr>
+                             <td>(1)</td>
+                             <td>475</td>
+                             <td>(1,3)</td>
+                             <td>429</td>
+                         </tr>
+                         <tr>
+                             <td>...</td>
+                             <td>...</td>
+                             <td>...</td>
+                             <td>...</td>
+                         </tr>
+                     </tbody>
+                 </table>
+            </div>
+            <p style="margin-top: 15px;">When a packet arrives on link (1) with label 473, the router looks up this row and swaps the label to 732, then forwards it on link (1,2).</p>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-clock" style="color: #3498db;"></i> Connection Setup Time</h4>
+            <p>During LSP (connection) setup:</p>
+            <ul>
+                <li>A label distribution protocol (like LDP or RSVP-TE) runs between routers.</li>
+                <li>Each router along the path reserves resources (if needed) and assigns label mappings.</li>
+                <li>Once this is complete, all routers have consistent forwarding rules, ensuring packets in the flow keep traversing the same path with correct labels.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Benefits of Organized Label Tables</h4>
+            <ul>
+                <li><strong>Fast Lookup</strong>: Routers can quickly check incoming labels and swap them without deep IP header inspection.</li>
+                <li><strong>Deterministic Paths</strong>: Guarantee a known route for QoS or traffic engineering.</li>
+                <li><strong>Scalability</strong>: Routers can handle large numbers of flows by storing compact label-based rules instead of per-hop IP routes.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-brain" style="color: #e74c3c;"></i> Key Takeaway</h4>
+             <div class="quote" style="border-left-color: #5d6d7e; background-color: #f4f6f7;">
+                 <p>These label-swapping tables are populated at connection setup time, ensuring every packet for that MPLS flow follows the intended route with minimal overhead.</p>
+            </div>
+        </section>
+
+        <section id="mpls-multicast" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-share-alt"></i> MPLS for Scalable Multicast</h3>
+            <p>MPLS (Multiprotocol Label Switching) isn't just for unicast traffic. It can also be used to manage multicast in a scalable way, offering efficient distribution of packets to multiple destinations.</p>
+
+            <h4><i class="fas fa-tags" style="color: #5d6d7e;"></i> How MPLS Multicast Works</h4>
+            <ul>
+                <li><strong>Label Replication</strong>:
+                    When a packet arrives at a label switch router (LSR), the router can replicate the packet to multiple outgoing interfaces. Each outgoing interface may use its own label for the next hop.
+                </li>
+                <li><strong>Logical Multicast Tree</strong>:
+                    A multicast tree is formed through the network, ensuring packets reach every subscriber without redundant forwarding. The physical links might connect routers in various ways, but MPLS sets up logical branching paths for each multicast group.
+                </li>
+                <li><strong>Scalable Approach</strong>:
+                    With MPLS, each router only needs to know the incoming label for the multicast group and the outgoing labels to branch the traffic. This avoids per-receiver or per-flow state explosion, making it suitable for large-scale deployments.
+                </li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Key Benefits</h4>
+            <ul>
+                <li><strong>Efficient Bandwidth Usage</strong>: No duplicate packets on shared links — packets are replicated at the branching points.</li>
+                <li><strong>Simplified Router Configuration</strong>: Routers manage label-swapping rules rather than complex IP-based multicast routing.</li>
+                <li><strong>High Scalability</strong>: Supports many receivers with minimal overhead, crucial for big streaming events or large enterprise networks.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Takeaway</h4>
+            <div class="quote" style="border-left-color: #16a085; background-color: #e8f6f3;">
+                 <p>By adding multiple outputs at certain routers, MPLS can seamlessly implement multicast trees in a scalable manner — ensuring every recipient gets the data with minimal redundancy.</p>
+            </div>
+        </section>
+
+        <section id="dscp-phb" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-brain"></i> DSCP & Per-Hop Behavior: How Packets Get Treated in QoS Networks</h3>
+            <p>When it comes to Quality of Service (QoS) in IP networks, the Differentiated Services Code Point (DSCP) is the core of how routers decide to treat packets.</p>
+
+            <h4><i class="fas fa-box-open" style="color: #1abc9c;"></i> What Is DSCP?</h4>
+            <p>DSCP is a 6-bit field in the IP packet header that tells routers and switches how to forward that packet. It defines a Per-Hop Behavior (PHB) — a policy that determines:</p>
+            <ul>
+                <li>Priority</li>
+                <li>Bandwidth reservation</li>
+                <li>Queue management</li>
+                <li>Scheduling</li>
+            </ul>
+            <p>DSCP values are assigned at the network boundary, usually by a traffic conditioner that includes:</p>
+            <ul>
+                <li><strong>Classifier</strong>: Identifies the type of traffic.</li>
+                <li><strong>Policer</strong>: Enforces traffic rate limits.</li>
+                <li><strong>Shaper</strong>: Smooths traffic bursts.</li>
+                <li><strong>Marker</strong>: Tags the packet with a DSCP value.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-cogs" style="color: #7f8c8d;"></i> DSCP Field Structure</h4>
+            <ul>
+                <li>6 bits → DSCP (defines PHB)</li>
+                <li>2 bits → Reserved for future use (ECN - Explicit Congestion Notification)</li>
+            </ul>
+            <p>That means:</p>
+            <ul>
+                <li>Total DSCP values: 2⁶ = 64 possible PHBs</li>
+                <li>👉 Only a subset of these 64 behaviors are widely used in practice.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-tasks" style="color: #3498db;"></i> Real-World Example</h4>
+            <p>For instance:</p>
+            <ul>
+                <li>Voice traffic can be marked to receive low-latency, high-priority treatment.</li>
+                <li>Bulk file transfers can be marked for best-effort delivery.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Why It Matters</h4>
+            <div class="quote" style="border-left-color: #e74c3c; background-color: #fdedec;">
+                <p>Using DSCP allows scalable, simple QoS without per-flow state tracking. Each packet carries its own forwarding treatment instructions, enabling routers to make fast, stateless decisions.</p>
+            </div>
+        </section>
+
+        <section id="traffic-aggregation" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-layer-group"></i> Traffic Aggregation in DiffServ: Efficient QoS at Scale</h3>
+            <p>When millions of individual flows enter a network, it becomes <strong>impractical to assign a unique behavior</strong> to each. The Differentiated Services (DiffServ) architecture solves this by grouping traffic into <strong>aggregates</strong>, each associated with a common treatment known as a <strong>Per-Hop Behavior (PHB)</strong>.</p>
+            
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-exchange-alt" style="color: #3498db;"></i> From Individual Flows to Aggregated Behavior</h4>
+            <ul>
+                <li>Outside the network (at the edge), <strong>millions of individual flows</strong> are generated.</li>
+                <li>Inside the network (core), <strong>only ~64 PHBs</strong> are available due to the 6-bit DSCP field.</li>
+                <li>💡 <strong>Solution</strong>: Map multiple flows with similar QoS requirements to the <strong>same PHB</strong>.</li>
+            </ul>
+            
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-cubes" style="color: #9b59b6;"></i> Building Traffic Aggregates</h4>
+            <p>You're essentially <strong>building traffic aggregates</strong> like this:</p>
+            <ul>
+                <li>One PHB for all <strong>television applications</strong></li>
+                <li>One PHB for <strong>low-latency real-time gaming</strong></li>
+                <li>One PHB for <strong>bulk file transfers</strong>, etc.</li>
+            </ul>
+            
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Benefits of Aggregation</h4>
+            <ul>
+                <li><strong>Scalability</strong>: Drastically reduces the number of forwarding behaviors inside the core.</li>
+                <li><strong>Efficiency</strong>: Aggregated flows require <strong>less per-flow state</strong>, saving memory and processing power.</li>
+                <li><strong>Consistency</strong>: Flows within the same aggregate receive <strong>the same treatment across the network</strong>.</li>
+            </ul>
+            
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Takeaway</h4>
+            <div class="quote" style="border-left-color: #e67e22; background-color: #fef5e7;">
+                 <p><strong>Traffic aggregation</strong> is a cornerstone of scalable QoS. By <strong>mapping similar traffic to the same DSCP/PHB</strong>, network operators can maintain predictable behavior without overwhelming the core with flow-level complexity.</p>
+            </div>
+        </section>
+
+        <section id="aggregation-classification-details" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-microscope"></i> Inside the DiffServ Architecture: Aggregation & Classification</h3>
+            <p>When traffic enters a DiffServ-enabled network, thousands or even millions of individual flows are compressed into a smaller number of traffic aggregates. These aggregates are each mapped to a Per-Hop Behavior (PHB) using the DSCP (Differentiated Services Code Point) field in the IP packet header.</p>
+
+            <h4><i class="fas fa-exchange-alt" style="color: #3498db;"></i> From Complex Edges to Simple Core</h4>
+            <ul>
+                <li><strong>Outside the network (edge):</strong> We have many individual flows, each with its own QoS needs.</li>
+                <li><strong>Inside the network (core):</strong> These are grouped into PHB classes (PHB1, PHB2, ..., PHBm) for simplified processing.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-border-all" style="color: #e67e22;"></i> Classification at the Border (Complex but Powerful)</h4>
+            <ul>
+                <li>A classifier at the network edge determines the QoS requirement for each packet.</li>
+                <li>Based on that, it assigns a PHB value in the DSCP byte.</li>
+                <li>This process happens at the border of the network and can be computationally intensive.</li>
+                <li>✅ Once inside the network, routers no longer need to analyze each flow—they just read the DSCP value and forward accordingly.</li>
+            </ul>
+            
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-box-open" style="color: #1abc9c;"></i> Scalability in Action</h4>
+            <p>Inside the network:</p>
+            <ul>
+                <li>A demux (demultiplexer) separates packets based on PHB.</li>
+                <li>A scheduler applies appropriate forwarding behavior.</li>
+            </ul>
+            <p>Since the number of PHBs is limited, the core remains simple and scalable.</p>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-star" style="color: #f1c40f;"></i> Summary</h4>
+            <div class="quote" style="border-left-color: #2980b9; background-color: #ebf5fb;">
+                <ul>
+                    <li>DiffServ achieves scalability by shifting complexity to the edges of the network.</li>
+                    <li>The core handles fewer classes, enabling high-speed forwarding.</li>
+                    <li>This model is ideal for large-scale deployments where QoS is required without sacrificing scalability.</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="core-strategy" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-bullseye"></i> The Core Strategy Behind DiffServ (DS)</h3>
+            <p>In Differentiated Services (DiffServ), the key idea is where the complexity lives in the network. This slide explains a fundamental architectural choice that enables scalability and efficiency.</p>
+            
+            <h4><i class="fas fa-search" style="color: #1abc9c;"></i> Key Concepts</h4>
+            <ul>
+                <li><strong>Outside the network (edge):</strong>
+                    <ul>
+                        <li>There are many individual flows.</li>
+                        <li>These are classified and aggregated at the border router (a complex and intelligent component).</li>
+                        <li>The classifier assigns a Per-Hop Behavior (PHB) to each flow based on QoS needs.</li>
+                    </ul>
+                </li>
+                <li><strong>Inside the network (core):</strong>
+                    <ul>
+                        <li>Internal routers only see a few PHBs.</li>
+                        <li>They perform simple scheduling based on PHB.</li>
+                        <li>No deep packet inspection or per-flow state is needed.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-map-signs" style="color: #e67e22;"></i> Why This Works</h4>
+            <p>💡 Strategy of DS:</p>
+            <div class="quote" style="border-left-color: #f1c40f; background-color: #fcf8e3;">
+                 <p>Keep complexity at the border and ensure simplicity inside the network.</p>
+            </div>
+            <p style="margin-top: 15px;">This design allows the network core to operate at high speed, handling many packets without managing each flow individually. Meanwhile, the border routers handle QoS decisions, making this model highly scalable and robust for large-scale IP networks.</p>
+        </section>
+
+        <section id="design-logic" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-compass"></i> DiffServ Design Logic: Border vs Core Routers</h3>
+            <p>This slide illustrates the architectural separation between border routers and core routers in a DiffServ-based network. The principle: put complexity where it's manageable.</p>
+
+            <h4><i class="fas fa-network-wired" style="color: #5d6d7e;"></i> Network Structure</h4>
+            <p>The network is composed of:</p>
+            <ul>
+                <li>🔵 Many small border routers</li>
+                <li>⚪ A few big core routers (at the center)</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Design Philosophy</h4>
+            <ul>
+                <li><strong>Border routers handle:</strong>
+                    <ul>
+                        <li>Fewer connections</li>
+                        <li>More intelligent and complex functions like: Traffic classification, Policy enforcement, QoS assignment</li>
+                    </ul>
+                </li>
+                <li><strong>Core routers handle:</strong>
+                    <ul>
+                        <li>High-throughput transit</li>
+                        <li>Simple forwarding and scheduling</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-check-circle" style="color: #2ecc71;"></i> Why This Makes Sense</h4>
+            <div class="quote" style="border-left-color: #1abc9c; background-color: #e8f8f5;">
+                 <p>✨ "It is reasonable to push complex functions to the edge (border routers) and keep the core simple."</p>
+            </div>
+            <p style="margin-top:15px;">This separation supports:</p>
+            <ul>
+                <li>Scalability</li>
+                <li>Performance</li>
+                <li>Simplified core router design</li>
+            </ul>
+        </section>
+
+        <section id="ds-domain-roles" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-globe-americas"></i> DS Domain: Border and Core Routers Roles</h3>
+            <p>This slide introduces the concept of a DS (Differentiated Services) domain and how PHBs (Per-Hop Behaviors) are consistently managed across the domain by differentiating the responsibilities of border and core routers.</p>
+
+            <h4><i class="fas fa-cogs" style="color: #7f8c8d;"></i> DS Domain Overview</h4>
+            <ul>
+                <li><strong>DS Domain:</strong> A network region with consistent and uniform PHB management.</li>
+                <li><strong>PHBs (Per-Hop Behaviors) are:</strong>
+                    <ul>
+                        <li>Formed at the border routers (ingress/egress)</li>
+                        <li>Implemented in core routers through scheduling</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-shield-alt" style="color: #2980b9;"></i> Roles of Border Routers</h4>
+            <p>Border routers (also called ingress/egress routers) depending on traffic direction are responsible for:</p>
+            <ul>
+                <li>Creating traffic aggregates</li>
+                <li>Enforcing the TCA (Traffic Conditioning Agreement)</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-balance-scale" style="color: #e67e22;"></i> Core vs Border Logic</h4>
+             <ul>
+                <li><strong>Border routers add complexity:</strong>
+                    <ul>
+                        <li>Assign DSCP values based on SLA</li>
+                        <li>Define PHBs per traffic class</li>
+                    </ul>
+                </li>
+                <li><strong>Core routers perform simple scheduling decisions using the PHB</strong></li>
+            </ul>
+        </section>
+
+        <section id="ef-phb" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-bolt"></i> Expedited Forwarding PHB (EF)</h3>
+            <p>The EF PHB (Expedited Forwarding Per-Hop Behavior) is designed to offer a guaranteed low-delay service, ideal for time-sensitive traffic in IP networks.</p>
+
+            <h4><i class="fas fa-rocket" style="color: #e74c3c;"></i> Key Features</h4>
+            <ul>
+                <li><strong>Guaranteed Delay:</strong> EF ensures that packets experience minimal delay with a strict upper bound.</li>
+                <li><strong>Circuit Emulation over IP:</strong> Suitable for mimicking dedicated circuit behaviors in IP-based networks.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-cogs" style="color: #7f8c8d;"></i> Use Case</h4>
+            <p>EF PHB is especially useful for:</p>
+            <ul>
+                <li>Pseudowires and services that replicate the behavior of physical lines.</li>
+                <li>Any application requiring deterministic performance like VoIP, real-time video, or tunneling protocols.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-diagram-project" style="color: #9b59b6;"></i> EF PHB Flow Diagram (From the Slide)</h4>
+             <p>📌 EF behavior:</p>
+            <ul>
+                <li><strong>Entry (left):</strong> Deterministic delay input</li>
+                <li><strong>Core (cloud):</strong> EF treatment with strict delay guarantees</li>
+                <li><strong>Exit (right):</strong> Bounded delay output</li>
+            </ul>
+            <div class="quote" style="border-left-color: #f39c12; background-color: #fff9e6;">
+                 <p>💡 <strong>Note:</strong> EF PHB must maintain strict latency guarantees. The delay is bounded, ensuring predictable performance.</p>
+            </div>
+        </section>
+
+        <section id="traffic-service-curve" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-chart-line"></i> Traffic Curve & Service Curve</h3>
+            <p>This slide introduces traffic modeling in networking using traffic curves, which is essential for analyzing Quality of Service (QoS).</p>
+
+            <h4><i class="fas fa-traffic-light" style="color: #e67e22;"></i> What is X(t)?</h4>
+            <ul>
+                <li>X(t) represents the number of bits that have crossed a network interface in the time interval \([0,t]\).</li>
+                <li>It is a monotonic non-decreasing function, meaning the total number of bits never decreases with time.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+            
+            <h4><i class="fas fa-chart-bar" style="color: #3498db;"></i> Visual Explanation</h4>
+            <ul>
+                <li>The curve on the graph shows how traffic accumulates over time.</li>
+                <li>The jumps in the graph represent bursts of traffic.</li>
+                <li>This function helps in evaluating performance metrics like delay and backlog.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-lightbulb" style="color: #f39c12;"></i> Applications</h4>
+            <ul>
+                <li>Used in network calculus and service curve analysis.</li>
+                <li>Helps to predict buffer requirements and end-to-end delays in routers or network links.</li>
+                <li>Key for admission control and traffic shaping strategies.</li>
+            </ul>
+        </section>
+
+        <section id="line-speed-transmission" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-ruler-combined"></i> Line Speed & Packet Transmission</h3>
+            <p>This slide visualizes how packet transmission over a link works, emphasizing line speed, bit accumulation, and service curves.</p>
+
+            <h4><i class="fas fa-chart-line" style="color: #2ecc71;"></i> Breakdown of the Graph</h4>
+            <ul>
+                <li>\(X(t)\) = number of bits transmitted up to time \(t\)</li>
+                <li>\(L\) = size of one packet (in bits)</li>
+                <li>\(d\) = line speed, i.e., transmission rate in bits per second</li>
+                <li>Each segment represents constant-rate service where:</li>
+            </ul>
+            \[ Slope = d \quad (\text{line speed}) \]
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-box" style="color: #1abc9c;"></i> Packet Timing</h4>
+            <ul>
+                <li>Two packets, each of size \(L\), are shown being sent consecutively.</li>
+                <li>Time to send each packet = \(\frac{L}{d}\)</li>
+                <li>The graph shows step-like increases, which reflect the packetized nature of traffic.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-brain" style="color: #e74c3c;"></i> Interpretation</h4>
+            <ul>
+                <li>This model is useful to define the service curve: a lower-bound on how much service (bandwidth) is guaranteed over time.</li>
+                <li>The slope is key — it tells us how fast packets are being drained from a buffer.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-cogs" style="color: #7f8c8d;"></i> Applications</h4>
+            <ul>
+                <li>Helps evaluate delay, jitter, and buffer size.</li>
+                <li>Forms the foundation of network calculus.</li>
+                <li>Crucial for QoS (Quality of Service) guarantees and deterministic networking.</li>
+            </ul>
+        </section>
+
+        <section id="potential-actual-service-curve" class="subsection diffserv-subsection">
+            <h3><i class="fas fa-chart-area"></i> Potential vs. Actual Service Curve</h3>
+            <p>This slide explores two core concepts in network calculus: \( Y^*(t) \) (Potential Service Curve) and \( Y(t) \) (Actual Service Curve).</p>
+
+            <div style="text-align: center; margin: 20px 0;">
+                 <img src="../images/potential-vs-actual-service-curve.png" alt="Potential vs Actual Service Curve Diagram" style="max-width: 80%; height: auto; border: 1px solid #ccc; padding: 5px; border-radius: 5px;">
+                 <p style="font-size: 0.9em; color: #555; margin-top: 5px;">Diagram illustrating Input (X(t)), Potential Service (Y*(t)), and Actual Output (Y(t)).</p>
+            </div>
+
+            <h4><i class="fas fa-binoculars" style="color: #3498db;"></i> What's Happening in the Diagram?</h4>
+            <ul>
+                <li>\(X(t)\) – Input traffic curve (yellow)</li>
+                <li>\(Y^*(t)\) – Potential service curve = \(C \cdot t\), where \(C\) is the link capacity (blue)</li>
+                <li>\(Y(t)\) – Actual output curve showing how much data has actually been served by time \(t\) (red)</li>
+            </ul>
+            <p>This helps visualize how traffic is scheduled and transmitted, especially in FIFO queues.</p>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-book-open" style="color: #9b59b6;"></i> Key Definitions</h4>
+            <ul>
+                <li><strong>Potential Service \(Y^*(t)\):</strong> The maximum number of bits that the system can serve in time interval \([0,t]\).</li>
+                <li><strong>Actual Service \(Y(t)\):</strong> The actual number of bits transmitted through the output (labeled "O").</li>
+                <li><strong>FIFO Queue:</strong> Packets are served in the order they arrive.</li>
+            </ul>
+
+            <hr style="margin: 25px 0; border-top: 1px solid #eee;">
+
+            <h4><i class="fas fa-cogs" style="color: #7f8c8d;"></i> Real Use Case</h4>
+            <p>This model is used to:</p>
+            <ul>
+                <li>Analyze network delay</li>
+                <li>Prove bandwidth guarantees</li>
+                <li>Design traffic shaping and scheduling mechanisms</li>
+            </ul>
+        </section>
+
+    </main>
+
+    <script src="../script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DiffServ page specific script loaded.');
+            const mainSection = document.querySelector('#diffserv-architecture');
+            if (mainSection) {
+                mainSection.classList.add('active');
+            }
+            if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        });
+    </script>
+</body>
+</html> 
